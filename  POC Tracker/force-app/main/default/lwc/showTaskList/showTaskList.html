@@ -1,0 +1,23 @@
+<template>
+    <lightning-card>
+        <div class="slds-page-header slds-page-header--object-home">
+            <lightning-layout>
+                <lightning-layout-item class="slds-m-left--small">
+                    <h1 class="slds-page-header__title slds-p-right--x-small">Tasks</h1>
+                </lightning-layout-item>
+            </lightning-layout>
+        </div>
+        <template if:true={isTaskDataAvilable}>
+            <div style="height: 300px;">
+                <lightning-datatable key-field="Id" data={taskList} columns={columns} hide-checkbox-column="true">
+                </lightning-datatable>
+            </div>
+        </template>
+<template if:false={isTaskDataAvilable}>
+            <div class="slds-p-left_small">
+                <p>No Data Found</p>
+            </div>
+        </template>
+
+</lightning-card>
+</template>

@@ -1,0 +1,35 @@
+<template>
+    <div class="slds-page-header slds-page-header--object-home">
+      <lightning-layout>
+        <lightning-layout-item class="slds-m-left--small">
+          <h1 class="slds-page-header__title slds-p-right--x-small">Compitancy</h1>
+        </lightning-layout-item>
+      </lightning-layout>
+    </div>
+   
+    <div class="slds-pill_container">
+      <template if:true={isDataAvilable}>
+        <template for:each={compitancyList} for:item="a">
+          <div class="slds-p-left_small" key={a.Id}>
+            <span class="slds-pill slds-pill_link">
+              <a href="javascript:void(0);" class="slds-pill__action" title="Full pill label verbiage mirrored here">
+                <span class="slds-pill__label" onclick={handleClick} data-id={a.Id}>{a.CompetencyName}</span>
+              </a>
+            </span>
+          </div>
+        </template>
+</template>
+
+<template if:false={isDataAvilable}>
+        <div class="slds-p-left_small">
+          <p>No Data Found</p>
+        </div>
+      </template>
+</div>
+
+<template if:true={isTrueTask}>
+      <c-show-task-list record-id={selectedCompitancyId}>
+      </c-show-task-list>
+    </template>
+
+</template>

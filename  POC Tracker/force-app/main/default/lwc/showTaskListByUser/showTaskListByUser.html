@@ -1,0 +1,35 @@
+<template>
+    <c-add-task subcomp-id={subcompId} competency-id={competencyId} onaddevent={handleAddTask}></c-add-task>
+
+    <div class="slds-m-around_medium">
+        <template if:true={taskList}>
+            <lightning-card title='Epic'>
+                <lightning-datatable key-field="Id" data={taskList} columns={columns} hide-checkbox-column="true"
+                    onsave={handleSave} draft-values={draftValues} onrowaction={handleRowAction}>
+                </lightning-datatable>
+            </lightning-card>
+        </template>
+<template if:true={showMessage}>
+            <lightning-card title={message}>
+            </lightning-card>
+        </template>
+<template if:true={error}>
+            {error}
+        </template>
+</div>
+<!-- <div class="slds-m-around_medium">
+    <template if:true={taskList}>
+            <lightning-card title="Opportunity Bar Chart" icon-name="utility:chart">
+                <template if:true={chartConfiguration}>
+                    <c-chart chart-config={chartConfiguration}></c-chart>
+                </template>
+    </lightning-card>
+    </template>
+</div> -->
+<div class="slds-m-around_medium">
+    <template if:true={showEditTask}>
+            <c-edit-task record-id={recordId} onclosemodalevent={handleCloseModal} onupdateevent={handleUpdateTask}>
+            </c-edit-task>
+        </template>
+</div>
+</template>

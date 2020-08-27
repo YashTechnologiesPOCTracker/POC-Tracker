@@ -1,0 +1,30 @@
+<template>
+  <lightning-card>
+    <div class="slds-page-header slds-page-header--object-home">
+      <lightning-layout>
+        <lightning-layout-item class="slds-m-left--small">
+          <h1 class="slds-page-header__title slds-p-right--x-small">Subsidiary</h1>
+        </lightning-layout-item>
+      </lightning-layout>
+    </div>
+    <div class="slds-pill_container">
+      <template for:each={subsidiaryList} for:item="a">
+        <div class="slds-p-left_small" key={a.Id}>
+          <span class="slds-pill slds-pill_link">
+            <span class="slds-pill__label" onclick={handleClick} data-id={a.SCId}>{a.subsidiaryName}</span>
+          </span>
+        </div>
+      </template>
+</div>
+</lightning-card>
+
+<template if:true={isTrue}>
+    <c-show-task-list-by-user current-user-id={currentUserId} competency-id={competencyId} subcomp-id={selectedSubComp}>
+    </c-show-task-list-by-user>
+  </template>
+
+<!-- <template if:true={isTrue}>
+    <c-show-report sc-id={selectedSubComp}></c-show-report>
+  </template> -->
+
+</template>

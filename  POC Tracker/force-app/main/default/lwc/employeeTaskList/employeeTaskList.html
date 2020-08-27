@@ -1,0 +1,29 @@
+<template>
+    <div class="slds-m-around_medium">
+        <template if:true={isDataAvilable}> 
+            <template if:true={taskList}>
+                <lightning-card title='Your Assigned Epics'>
+                    <lightning-datatable key-field="Id" data={taskList} columns={columns} hide-checkbox-column="true"
+                        onsave={handleSave} draft-values={draftValues} onrowaction={handleRowAction}>
+                    </lightning-datatable>
+                </lightning-card>
+            </template>
+</template>
+<template if:false={isDataAvilable}>
+            <div class="slds-p-left_small">
+                <p>No Task Found</p>
+              </div>
+        </template>
+<template if:true={error}>
+                {err}
+            </template>
+
+</div>
+<div class="slds-m-around_medium">
+    <template if:true={showEditTask}>
+            <c-employee-edit-task record-id={recordId} progress={progress} onclosemodalevent={handleCloseModal}
+                onupdateevent={handleUpdateTask}>
+            </c-employee-edit-task>
+        </template>
+</div>
+</template>
