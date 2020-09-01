@@ -1,5 +1,5 @@
-import { LightningElement, api, wire } from "lwc";
-import callReport from "@salesforce/apex/taskController.callReport";
+import { LightningElement, wire } from 'lwc';
+import callSubReport from "@salesforce/apex/taskController.callSubReport";
 import { CurrentPageReference } from "lightning/navigation";
 import { registerListener, unregisterAllListeners } from "c/pubsub";
 import chartjs from '@salesforce/resourceUrl/ChartJs';
@@ -7,39 +7,43 @@ import { loadScript } from 'lightning/platformResourceLoader';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent'
 import userId from '@salesforce/user/Id';
 
-export default class ShowReport extends LightningElement {
-    isDataAvailable = false;
-    scId;
-    //parentId; // sub task parent id
+export default class ShowSubTaskReport extends LightningElement {
+
+    parentId;
     refreshReport;
+    error;
     @wire(CurrentPageReference) pageRef;
 
+
     connectedCallback() {
-        console.log("Connected Callback of ShowReport");
-        registerListener("selectedSubIdForReport", this.handleCallback, this);
-        registerListener("SCIdFormShowCompList", this.handleCallback, this);
-        registerListener("updateReportChart", this.handle, this);
-        //registerListener("showSubTaskReport", this.handleCall, this);
+        console.log("Connected Callback of Show Sub Report");
+        registerListener("subTaskReportChart", this.handleCallback, this);
+        registerListener("subTaskAddedEvent", this.handleCall, this);
+        registerListener("editReportUpdate", this.handleCall, this);
+        registerListener("deleteReportUpdate", this.handleCall, this);
+        console.log('after regis....subTaskAddedEvent');
     }
+
 
     handleCallback(detail) {
-        console.log('detail id ' + detail);
-        this.scId = detail;
-        this.getReportData();
+        console.log('parent id detail' + detail);
+        this.parentId = detail;
+        this.getSubTaskReport();
     }
 
-    handle() {
-        console.log('in handle');
-        this.getReportData();
+    handleCall(detail) {
+        console.log(' detail' + detail);
+        this.getSubTaskReport();
     }
 
     disconnectedCallback() {
         unregisterAllListeners(this);
     }
 
-    getReportData() {
-        callReport({ scId: this.scId, userId: userId })
+    getSubTaskReport() {
+        callSubReport({ parentId: this.parentId, userId: userId })
             .then((data) => {
+                console.log('Report: sub task data ' + JSON.stringify(data) + 'id ' + this.parentId);
                 this.refreshReport = data;
                 this.chart.data.labels = [];
                 this.chart.data.datasets.forEach((dataset) => {
@@ -50,17 +54,17 @@ export default class ShowReport extends LightningElement {
                     for (var key in data) {
                         this.updateChart(data[key].count, data[key].label);
                     }
-                    this.isDataAvailable = true;
-                    console.log('scId ' + this.scId + 'refresh report: ' + JSON.stringify(this.refreshReport));
+                    //this.isDataAvailable = true;
+                    //console.log('parentId ' + this.parentId);
                 }
 
             })
             .catch((err) => {
                 console.log("In report error " + err);
-                this.isDataAvailable = false;
+                // this.isDataAvailable = false;
+                // this.error = err.message;
             });
     }
-
 
     chart;
     chartjsInitialized = false;
@@ -70,16 +74,16 @@ export default class ShowReport extends LightningElement {
             datasets: [{
                 data: [],
                 backgroundColor: [
+                    '#072F5F',
+                    '#557CFF',
+                    '#229389',
+                    '#57C3AD',
                     '#FF0000',
                     '#0000FF',
                     '#008000',
                     '#800080',
                     '#008080',
                     '#000080',
-                    '#FF00FF',
-                    '#808080',
-                    '#800000',
-                    '#808000',
                     'rgb(255,99,132)',
                     'rgb(255,159,64)',
                     'rgb(255,205,86)',
@@ -105,7 +109,7 @@ export default class ShowReport extends LightningElement {
     };
 
     renderedCallback() {
-        console.log('in render chart');
+        console.log('In rendered callback ' + this.parentId);
         if (this.chartjsInitialized) {
             return;
         }
@@ -146,4 +150,5 @@ export default class ShowReport extends LightningElement {
     //     });
     //     this.chart.update();
     // }
+
 }

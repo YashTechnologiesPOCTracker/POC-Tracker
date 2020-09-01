@@ -1,0 +1,8 @@
+<aura:component implements="lightning:isUrlAddressable, flexipage:availableForAllPageTypes" access="global">
+    <aura:attribute type="Object" name="recordData" />
+    <aura:handler name="init" value="{!this}" action="{!c.init}" />
+    <aura:handler name="change" value="{!v.pageReference}" action="{!c.reInit}" />
+    <div class="slds-card">
+        <!--<c:showTaskDetail recordData="{!v.recordData}" />-->
+    </div>
+</aura:component>

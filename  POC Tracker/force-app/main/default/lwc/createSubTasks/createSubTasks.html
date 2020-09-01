@@ -20,8 +20,8 @@
                     </header>
                     <lightning-card>
                         <lightning-record-edit-form object-api-name="Tracker__c" onsuccess={handleSuccess}>
-                            <div class="slds-grid slds-wrap slds-hide">
-                                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <div class="slds-grid slds-wrap">
+                                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-hide">
                                     <lightning-input-field field-name="Subsidiary_CompetencyId__c" value={userSubCompId} disabled>
                                     </lightning-input-field>
                                 </span>
@@ -64,7 +64,7 @@
                                 <lightning-button class="slds-button slds-button_left" label="Save" type="submit"
                                     variant="brand"></lightning-button>
                                 <lightning-button class="slds-button slds-button_right" label="Cancel"
-                                    onclick={handleCancel}></lightning-button>
+                                    onclick={closeForm}></lightning-button>
                             </footer>
                         </lightning-record-edit-form>
                     </lightning-card>

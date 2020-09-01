@@ -1,12 +1,15 @@
 <template>
-        <lightning-card title='Competency Task List distributed by Program'>
-            <div>
-              <canvas class="donut" lwc:dom="manual"></canvas>
-            </div>
-          </lightning-card>
-<template if:false={isDataAvilable}>
-        <div class="slds-p-left_small">
-          <p>No Data to Display</p>
-        </div>
-      </template>
+  <!-- <template if:true={isDataAvailable}> -->
+    <lightning-card title='Competency Task List distributed by Program'>
+      <div>
+        <canvas class="donut" lwc:dom="manual"></canvas>
+      </div>
+    </lightning-card>
+  <!-- </template> -->
+
+<!-- <template if:false={isDataAvailable}>
+    <div class="slds-p-left_small">
+      <p>No Data to Display</p>
+    </div>
+  </template> -->
 </template>

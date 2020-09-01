@@ -1,18 +1,22 @@
 import { LightningElement, track, wire, api } from 'lwc';
 import getCompitancy from '@salesforce/apex/GetSubsidiaryList.getCompitancyBySubsidiaryId';
-import { CurrentPageReference } from 'lightning/navigation';
 import getTasks from '@salesforce/apex/TestFinalShowTaskList.getTasks';
-import { fireEvent } from 'c/pubsub';
+import { subscribe } from 'lightning/messageService';
 
 export default class ShowCompetencyList extends LightningElement {
-    @track compitancyList = [];
-    @track isDataAvilable = false;
-    @wire(CurrentPageReference) pageRef;
+    selectedSubsidiary;
+    competencyList;
+    taskList;
+    selectedCompetencyId;
+    isTaskTrue = false;
+    isDataAvilable = false;
+    isTaskDataAvilable = false;
+    isCompetencyTrue = true;
+    isTaskTrue = false;
     @api recordId;
-    @track competencyId;
-    @track displayDiv = false;
-    @track selectedCompitancyId;
-    isTrueTask = false;
+    @api selectedSubsidiaryName;
+    @api selectedCompetencyName;
+
 
 
     @wire(getCompitancy, { recordId: "$recordId" }) getCompitancyList(result) {
@@ -31,32 +35,42 @@ export default class ShowCompetencyList extends LightningElement {
                 newArray.push(newObject);
             });
             if (newArray.length) {
-                this.compitancyList = newArray;
+                this.competencyList = newArray;
                 this.isDataAvilable = true;
 
             } else {
                 this.compitancyList = [];
                 this.isDataAvilable = false;
-                this.isTrueTask = false;
+
             }
-            console.log(this.isTrue);
             console.log(
-                "compitancy " + JSON.stringify(this.compitancyList)
+                "competency " + JSON.stringify(this.competencyList)
             );
         } else if (result.error) {
             this.error = result.error;
-            this.compitancyList = undefined;
+            this.competencyList = undefined;
         }
     }
 
-    handleClick(event) {
+    handleCompetencyClick(event) {
         event.preventDefault();
-        this.selectedCompitancyId = event.target.dataset.id;
-        console.log("SelectedCompetencyId = " + this.selectedCompitancyId);
-        this.isTrueTask = true;
-        if (this.competencyId) {
-            fireEvent(this.pageRef, 'SCIdFormShowCompList', this.selectedCompitancyId);
-        }
+        this.selectedCompetencyId = event.target.dataset.id;
+        this.selectedCompetencyName = event.target.dataset.name;
+        this.isTaskTrue = true;
+        this.isCompetencyTrue = false;
+
+    }
+
+
+    handleCompetencyBack(event) {
+        this.isCompetencyTrue = false;
+        const customEvent = new CustomEvent("backsubsidiaryevent");
+        this.dispatchEvent(customEvent);
+    }
+
+    handleBackCompetency() {
+        this.isCompetencyTrue = true;
+        this.isTaskTrue = false;
     }
 
 }

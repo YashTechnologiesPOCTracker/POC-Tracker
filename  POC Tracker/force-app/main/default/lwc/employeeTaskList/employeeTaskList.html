@@ -1,8 +1,8 @@
 <template>
     <div class="slds-m-around_medium">
-        <template if:true={isDataAvilable}> 
+        <template if:true={isDataAvilable}>
             <template if:true={taskList}>
-                <lightning-card title='Your Assigned Epics'>
+                <lightning-card title='Your Assigned Epics' icon-name="action:record">
                     <lightning-datatable key-field="Id" data={taskList} columns={columns} hide-checkbox-column="true"
                         onsave={handleSave} draft-values={draftValues} onrowaction={handleRowAction}>
                     </lightning-datatable>
@@ -11,12 +11,12 @@
 </template>
 <template if:false={isDataAvilable}>
             <div class="slds-p-left_small">
-                <p>No Task Found</p>
-              </div>
+                <p>No Data Found</p>
+            </div>
         </template>
 <template if:true={error}>
-                {err}
-            </template>
+            {err}
+        </template>
 
 </div>
 <div class="slds-m-around_medium">
@@ -24,6 +24,13 @@
             <c-employee-edit-task record-id={recordId} progress={progress} onclosemodalevent={handleCloseModal}
                 onupdateevent={handleUpdateTask}>
             </c-employee-edit-task>
+        </template>
+</div>
+<div class="slds-m-around_medium">
+    <template if:true={showViewTask}>
+            <c-employee-task-view record-id={recordId} progress={progress} onclosemodalevent={handleCloseModal}
+                onupdateevent={handleUpdateTask}>
+            </c-employee-task-view>
         </template>
 </div>
 </template>

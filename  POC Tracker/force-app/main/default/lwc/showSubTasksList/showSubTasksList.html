@@ -1,25 +1,34 @@
 <template>
+
     <div class="slds-m-around_medium">
         <template if:true={subtaskList}>
-            <lightning-card title="Sub-Tasks">
+            <lightning-card title="Sub-Epics" icon-name="action:record">
+                <div slot="actions">
+                    <lightning-button label="Close" onclick={handleSubListClose}></lightning-button>
+                </div>
                 <lightning-datatable key-field="Id" data={subtaskList} columns={columns} hide-checkbox-column="true"
                     onsave={handleSave} draft-values={draftValues} onrowaction={handleRowAction}>
                 </lightning-datatable>
             </lightning-card>
         </template>
-<template if:true={showMessage}>
-            <lightning-card title={message}>
-            </lightning-card>
-        </template>
-<template if:true={error}>
-            {error}
-        </template>
 </div>
+<template if:true={showMessage}>
+        <lightning-card title={message}>
+        </lightning-card>
+    </template>
+<template if:true={error}>
+        {error}
+    </template>
 
 <div class="slds-m-around_medium">
     <template if:true={showEditTask}>
-                <c-edit-task record-id={recordId} onclosemodalevent={handleCloseModal} onupdateevent={handleUpdateTask}>
-                </c-edit-task>
-            </template>
+            <c-edit-task record-id={recordId} onclosemodalevent={handleCloseModal} onupdateevent={handleUpdateTask}>
+            </c-edit-task>
+        </template>
 </div>
+
+<template if:true={showSubTaskDetail}>
+    <c-show-sub-task-detail record-id={recordId} onclosesubtaskdetail={handleCloseSubTask}></c-show-sub-task-detail>
+</template>
+
 </template>

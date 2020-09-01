@@ -2,58 +2,76 @@ import { LightningElement, wire, track } from "lwc";
 import getTasks from "@salesforce/apex/taskController.getTasksByEmployee";
 import PROGRESS_FIELD from "@salesforce/schema/Tracker__c.Progress__c";
 import userId from "@salesforce/user/Id";
-
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import { refreshApex } from "@salesforce/apex";
 import { CurrentPageReference } from "lightning/navigation";
-
 import { updateRecord } from "lightning/uiRecordApi";
 import ID_FIELD from "@salesforce/schema/Tracker__c.Id";
 
-
 const actions = [
+    { label: "View", name: "view" },
     { label: "Edit", name: "edit" },
+
 ];
 
 export default class EmployeeTaskList extends LightningElement {
     currentUserId = userId;
+
     showEditTask = false;
+    showViewTask = false;
+
     @track recordId;
-    progress;
     @track PTGName;
     @track taskList;
     @track isDataAvilable = false;
+    progress;
     refreshTable;
     error;
     @wire(CurrentPageReference) pageRef;
-    @track columns = [{
+    @track columns = [
+        // {
+        //     label: "ID",
+        //     fieldName: "Name",
+        //     initialWidth: 80
+        // },
+        {
             label: "Subsidiary Name",
             fieldName: "subsidiaryName",
+
         },
         {
             label: "Competency Name",
             fieldName: "competencyName",
+
         },
         {
             label: "Title",
             fieldName: "Title",
-        },
-        {
-            label: "Program",
-            fieldName: "Program",
+
         },
         {
             label: "Progress",
             fieldName: "Progress",
             editable: true
         },
+        {
+            label: "Program",
+            fieldName: "Program",
+
+        },
         // {
         //     label: "Start_Date",
         //     fieldName: "Start_Date",
+
         // },
         // {
         //     label: "Target_Date",
         //     fieldName: "Target_Date",
+
+        // },
+        // {
+        //     label: "Assigned To",
+        //     fieldName: "Assigned_To",
         // },
         {
             type: "action",
@@ -62,6 +80,8 @@ export default class EmployeeTaskList extends LightningElement {
     ];
 
     @wire(getTasks, { currentUserId: "$currentUserId" }) getTaskList(result) {
+        // alert('user id ====', this.currentUserId);
+        console.log('Task Data: ' + JSON.stringify(result));
         this.refreshTable = result;
         if (result.data) {
             let newData;
@@ -71,18 +91,21 @@ export default class EmployeeTaskList extends LightningElement {
             newData.forEach((element) => {
                 let newObject = {};
                 newObject.Id = element.Id;
-                // newObject.Name = element.Name;
+                newObject.Name = element.Name;
                 newObject.Title = element.Title__c;
                 newObject.Progress = element.Progress__c;
                 newObject.Program = element.Program__c;
                 newObject.Start_Date = element.Start_Date__c;
                 newObject.Target_Date = element.Target_Date__c;
-                newObject.State = element.State__c;
                 newObject.subsidiaryName = element.Subsidiary_CompetencyId__r.Subsidiary_Name__r.Name;
                 newObject.competencyName = element.Subsidiary_CompetencyId__r.Competency_Name__r.Name;
+                newObject.Assigned_To = null;
+                if (element.Assigned_To__r.Name) {
+                    newObject.Assigned_To = element.Assigned_To__r.Name;
+                }
                 newArray.push(newObject);
             });
-            console.log('employee task array-->>> ' + newArray);
+            //this.taskList = newArray;
             if (newArray.length) {
                 this.taskList = newArray;
                 this.isDataAvilable = true;
@@ -100,19 +123,28 @@ export default class EmployeeTaskList extends LightningElement {
         }
     }
 
+
+
     handleRowAction(event) {
         let actionName = event.detail.action.name;
-        console.log("actionName " + actionName);
+        console.log("actionName ====> " + actionName);
         let row = event.detail.row;
         this.recordId = event.detail.row.Id;
         this.progress = event.detail.row.Progress;
+
+        console.log("Row " + JSON.stringify(row));
         console.log("Id " + this.recordId);
+
         switch (actionName) {
+            case "view":
+                this.showViewTask = true;
+                break;
 
             case "edit":
                 this.showEditTask = true;
-                console.log('Record Id ' + this.recordId);
+                console.log('Record Id in from list by user ' + this.recordId);
                 break;
+
             default:
         }
     }
@@ -148,10 +180,13 @@ export default class EmployeeTaskList extends LightningElement {
 
     handleCloseModal() {
         this.showEditTask = false;
+        this.showViewTask = false;
+
     }
 
     handleUpdateTask() {
         this.showEditTask = false;
+        this.showViewTask = false;
         return refreshApex(this.refreshTable);
     }
 

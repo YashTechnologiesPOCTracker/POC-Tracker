@@ -1,4 +1,4 @@
-import { LightningElement, track, wire } from "lwc";
+import { LightningElement, track, wire, api } from "lwc";
 import subtasks from "@salesforce/apex/taskController.listSubTask";
 import delSelectedTask from "@salesforce/apex/taskController.deleteTasks";
 import { updateRecord } from "lightning/uiRecordApi";
@@ -12,16 +12,18 @@ import { CurrentPageReference } from "lightning/navigation";
 import { fireEvent, registerListener, unregisterAllListeners } from "c/pubsub";
 
 const actions = [
-    { label: "View Details", name: "view" },
+    { label: "View", name: "view" },
     { label: "Edit", name: "edit" },
     { label: "Delete", name: "delete" }
 ];
 
 export default class ShowSubTasksList extends LightningElement {
-    parentId;
+    @api parentId;
+    //parentId;
     recordId;
     showEditTask = false;
     showMessage = false;
+    showSubTaskDetail = false;
     @track subtaskList;
     refreshTable;
     error;
@@ -83,6 +85,7 @@ export default class ShowSubTasksList extends LightningElement {
             if (Array.isArray(newArray) && newArray.length) {
                 this.subtaskList = newArray;
                 this.showMessage = false;
+                //  console.log('subtaskList ' + this.subtaskList);
             }
             //else if ((this.parentId) && !(Array.isArray(newArray) && newArray.length)) {
 
@@ -137,16 +140,17 @@ export default class ShowSubTasksList extends LightningElement {
             });
     }
 
-    renderedCallback() {
-        registerListener("showSubTaskEvent", this.handleCallback, this);
+    connectedCallback() {
+        registerListener("updateSubTask", this.handleCall, this);
         registerListener("subTaskAddedEvent", this.handleCall, this);
         registerListener("parentTaskDeleteEvent", this.handleCall, this);
+        fireEvent(this.pageRef, 'subTaskReportChart', this.parentId);
     }
 
-    handleCallback(detail) {
-        // console.log('details ' + detail);
-        this.parentId = detail;
-    }
+    // handleCallback(detail) {
+    //     console.log('details in sub task ' + detail);
+    //     this.parentId = detail;
+    // }
 
     handleCall(detail) {
         console.log("in handleCall " + detail);
@@ -165,10 +169,12 @@ export default class ShowSubTasksList extends LightningElement {
         switch (actionName) {
             case "view":
                 console.log("Record Id from subtask " + this.recordId);
-                fireEvent(this.pageRef, "passEventFromSubtaskList", this.recordId);
+                this.showSubTaskDetail = true;
+                // fireEvent(this.pageRef, "passEventFromSubtaskList", this.recordId);
                 break;
             case "edit":
                 this.showEditTask = true;
+                this.showSubTaskDetail = false;
                 console.log("Record Id from subtask " + this.recordId);
                 break;
             case "delete":
@@ -193,6 +199,7 @@ export default class ShowSubTasksList extends LightningElement {
                         variant: "success"
                     })
                 );
+                fireEvent(this.pageRef, "deleteReportUpdate", 'update sub report');
                 return refreshApex(this.refreshTable);
             })
             .catch((error) => {
@@ -213,6 +220,16 @@ export default class ShowSubTasksList extends LightningElement {
 
     handleUpdateTask() {
         this.showEditTask = false;
+        fireEvent(this.pageRef, "editReportUpdate", 'update sub report');
         return refreshApex(this.refreshTable);
+    }
+
+    handleCloseSubTask() {
+        this.showSubTaskDetail = false;
+    }
+
+    handleSubListClose() {
+        const customEvent = new CustomEvent('sublistclose');
+        this.dispatchEvent(customEvent);
     }
 }

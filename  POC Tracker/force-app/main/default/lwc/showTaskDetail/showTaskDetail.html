@@ -1,5 +1,99 @@
 <template>
-    <template if:true={showTask}>
+    <lightning-card icon-name="action:record" title="Epic Detail">
+        <div slot="actions">
+            <lightning-button class="slds-button slds-button_left" label='Edit' onclick={handleEdit}></lightning-button>
+            <lightning-button class="slds-button slds-button_middle" label='Show Sub-Epics' onclick={handleShowSubEpic}>
+            </lightning-button>
+            <lightning-button class="slds-button slds-button_right" label='Add Sub-Epic' onclick={handleAddSubEpic}>
+            </lightning-button>
+            <lightning-button-menu alternative-text="Show menu" onselect={handleSelect}>
+                <lightning-menu-item prefix-icon-name="utility:change_owner" label="Reassign" value="reassign">
+                </lightning-menu-item>
+                <lightning-menu-item prefix-icon-name="utility:error" label="Overdue" value="overdue">
+                </lightning-menu-item>
+                <lightning-menu-item prefix-icon-name="utility:success" label="Close" value="close">
+                </lightning-menu-item>
+            </lightning-button-menu>
+        </div>
+
+    </lightning-card>
+    <br />
+    <lightning-card variant="narrow">
+        <lightning-record-view-form record-id={recordId} object-api-name="Tracker__c">
+            <div class="slds-grid slds-wrap">
+                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                    <lightning-output-field field-name="Name"></lightning-output-field>
+                </span>
+                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-hide">
+                    <lightning-output-field field-name="Subsidiary_CompetencyId__c">
+                    </lightning-output-field>
+                </span>
+            </div>
+            <div class="slds-grid slds-wrap">
+                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                    <lightning-output-field field-name="Title__c"></lightning-output-field>
+                </span>
+                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                    <lightning-output-field field-name="Program__c"></lightning-output-field>
+                </span>
+            </div>
+            <div class="slds-grid slds-wrap">
+                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                    <lightning-output-field field-name="Start_Date__c"></lightning-output-field>
+                </span>
+                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                    <lightning-output-field field-name="Target_Date__c"></lightning-output-field>
+                </span>
+            </div>
+            <div class="slds-grid slds-wrap">
+                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                    <lightning-output-field field-name="State__c"></lightning-output-field>
+                </span>
+                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                    <lightning-output-field field-name="Assigned_To__c"></lightning-output-field>
+                </span>
+            </div>
+            <div class="slds-grid slds-wrap">
+                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                    <lightning-output-field field-name="Description__c"></lightning-output-field>
+                </span>
+                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                    <lightning-output-field field-name="Progress__c"></lightning-output-field>
+                </span>
+            </div>
+            <div class="slds-grid slds-wrap">
+                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-hide_medium">
+                    <lightning-output-field field-name="Progress__c"></lightning-output-field>
+                </span>
+                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1 ">
+                    <div class="">
+                        <lightning-progress-bar class="slds-progress-bar__value_success slds-progress-bar_circular"
+                            value={progress} size="large"></lightning-progress-bar>
+                    </div>
+                </span>
+            </div>
+        </lightning-record-view-form>
+        <br />
+    </lightning-card>
+    <br />
+    <template if:true={showSubEpic}>
+        <lightning-card>
+            <c-show-sub-tasks-list parent-id={recordId} onsublistclose={subListCloseHandler}></c-show-sub-tasks-list>
+        </lightning-card>
+    </template>
+
+<template if:true={showEdit}>
+        <c-edit-task record-id={recordId} onclosemodalevent={handleCloseModal} onupdateevent={handleUpdateTask}>
+        </c-edit-task>
+    </template>
+
+<template if:true={addSubEpic}>
+        <c-create-sub-tasks parent-task-record-id={recordId} user-sub-comp-id={userSubCompId}
+            onaddeventsuccess={handleAdd} oncancelevent={handleCancel}>
+        </c-create-sub-tasks>
+    </template>
+
+<template if:true={showReassigForm}>
         <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
             aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
             <div class="slds-modal__container">
@@ -11,55 +105,31 @@
                         </lightning-icon>
                         <span class="slds-assistive-text">Close</span>
                     </button>
-                    <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Epic Detail</h2>
+                    <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Epic Reassignment</h2>
                 </header>
                 <lightning-card>
-                    <lightning-record-view-form record-id={recordId} object-api-name="Tracker__c">
-                        <div class="slds-grid slds-wrap">
-                            <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
-                                <lightning-output-field field-name="Name"></lightning-output-field>
-                            </span>
-                            <span class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-hide">
-                                <lightning-output-field field-name="Subsidiary_CompetencyId__c">
-                                </lightning-output-field>
-                            </span>
-                        </div>
+                    <lightning-record-edit-form record-id={recordId} object-api-name="Tracker__c"
+                        onsuccess={onReassign}>
                         <div class="slds-grid slds-wrap">
                             <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
                                 <lightning-output-field field-name="Title__c"></lightning-output-field>
                             </span>
                             <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
-                                <lightning-output-field field-name="Program__c"></lightning-output-field>
+                                <lightning-input-field field-name="Assigned_To__c"></lightning-input-field>
                             </span>
                         </div>
-                        <div class="slds-grid slds-wrap">
-                            <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
-                                <lightning-output-field field-name="State__c"></lightning-output-field>
-                            </span>
-                            <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
-                                <lightning-output-field field-name="Progress__c"></lightning-output-field>
-                            </span>
-                        </div>
-                        <div class="slds-grid slds-wrap">
-                            <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
-                                <lightning-output-field field-name="Start_Date__c"></lightning-output-field>
-                            </span>
-                            <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
-                                <lightning-output-field field-name="Target_Date__c"></lightning-output-field>
-                            </span>
-                        </div>
-                        <div class="slds-grid slds-wrap">
-                            <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
-                                <lightning-output-field field-name="Description__c"></lightning-output-field>
-                            </span>
-                            <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
-                                <lightning-output-field field-name="Assigned_To__c"></lightning-output-field>
-                            </span>
-                        </div>
-                    </lightning-record-view-form>
+
+                        <footer class="slds-modal__footer">
+                            <lightning-button class="slds-button slds-button_left" label="Reassign" type="submit"
+                                variant="brand"></lightning-button>
+                            <lightning-button class="slds-button slds-button_right" label="Cancel" onclick={closeModal}>
+                            </lightning-button>
+                        </footer>
+                    </lightning-record-edit-form>
                 </lightning-card>
             </div>
         </section>
         <div class="slds-backdrop slds-backdrop_open"></div>
     </template>
+
 </template>

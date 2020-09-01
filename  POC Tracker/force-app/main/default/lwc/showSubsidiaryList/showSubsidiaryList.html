@@ -1,27 +1,48 @@
 <template>
-  <lightning-card>
-    <div class="slds-page-header slds-page-header--object-home">
-      <lightning-layout>
-        <lightning-layout-item class="slds-m-left--small">
-          <h1 class="slds-page-header__title slds-p-right--x-small">Subsidiary</h1>
-        </lightning-layout-item>
-      </lightning-layout>
-    </div>
-    <div class="slds-pill_container">
-          <template for:each={subsidiaryList.data} for:item="a">
-            <div key={a.Id} onclick={handleClick}>
-              <span class="slds-pill slds-pill_link">
-                <a href="javascript:void(0);" class="slds-pill__action" title="Full pill label verbiage mirrored here">
-                  <span class="slds-pill__label" data-id={a.Id}>{a.Name}</span>
+  <template if:true={isSubsidiaryTrue}>
+    <lightning-card>
+      <div class="slds-page-header slds-page-header--object-home">
+        <lightning-layout>
+          <lightning-layout-item class="slds-m-left--small">
+            <h1 class="slds-page-header__title slds-p-right--x-small">Subsidiaries</h1>
+          </lightning-layout-item>
+        </lightning-layout>
+      </div>
+      <div class="slds-card__body_inner">
+        <!-- Start subsidiary list -->
+        <template if:true={subsidiaryList}>
+          <lightning-layout multiple-rows="true" pull-to-boundary="small">
+            <template for:each={subsidiaryList.data} for:item="a">
+              <lightning-layout-item key={a.Id} size="3" class="slds-var-p-around_x-small">
+                <!-- Start subsidiary tile -->
+                <a>
+                  <div class="slds-text-align_center">
+                    <lightning-card title={a.Name} class="subsidiary-tile" data-id={a.Id} data-name={a.Name}
+                      onclick={handleSubsidiaryClick}>
+                      <div class="slds-var-p-horizontal_small bear-tile-body">
+                      </div>
+                    </lightning-card>
+                  </div>
                 </a>
-              </span>
-            </div>
-          </template>
+                <!-- End subsidiary tile -->
+              </lightning-layout-item>
+            </template>
+</lightning-layout>
+</template>
+<!-- End subsidiary list -->
+<!-- Data failed to load -->
+<template if:true={error}>
+          <div class="slds-text-color_error">
+            An error occurred while loading the subsidiary list
+          </div>
+        </template>
 </div>
 </lightning-card>
+</template>
 
-<template if:true={isTrue}>
-    <c-show-competency-list record-id={selectedSubsidiary}>
+<template if:true={isCompetencyTrue}>
+    <c-show-competency-list record-id={selectedSubsidiary} selected-subsidiary-name={selectedSubsidiaryName}
+      onbacksubsidiaryevent={handleBackSubsidiary}>
     </c-show-competency-list>
   </template>
 </template>

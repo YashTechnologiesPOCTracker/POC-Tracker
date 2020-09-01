@@ -1,38 +1,40 @@
 import { LightningElement, wire, track, api } from "lwc";
 import getTasks from "@salesforce/apex/taskController.getTasksByUser";
-import userPTGName from "@salesforce/apex/taskController.getPTGNameForLoggedInUser";
 import delSelectedTask from "@salesforce/apex/taskController.deleteTasks";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import { refreshApex } from "@salesforce/apex";
-import { CurrentPageReference } from "lightning/navigation";
-import { fireEvent } from "c/pubsub";
+import { CurrentPageReference, NavigationMixin } from "lightning/navigation";
+import { fireEvent, registerListener, unregisterAllListeners } from "c/pubsub";
 import { updateRecord } from "lightning/uiRecordApi";
 import ID_FIELD from "@salesforce/schema/Tracker__c.Id";
 import TITLE_FIELD from "@salesforce/schema/Tracker__c.Title__c";
 import PROGRAM_FIELD from "@salesforce/schema/Tracker__c.Program__c";
 import ASSIGNED_TO_FIELD from "@salesforce/schema/Tracker__c.Assigned_To__c";
+import PROGRESS_FIELD from "@salesforce/schema/Tracker__c.Progress__c";
 
 const actions = [
-    { label: "Add Sub-Task", name: "add_sub_task" },
-    { label: "Show Sub-Tasks", name: "show_sub_tasks" },
-    { label: "View Details", name: "view" },
+    // { label: "Add Sub-Task", name: "add_sub_task" },
+    // { label: "Show Sub-Tasks", name: "show_sub_tasks" },
+    { label: "View", name: "view" },
     { label: "Edit", name: "edit" },
     { label: "Delete", name: "delete" }
 ];
 
-export default class ShowTaskListByUser extends LightningElement {
+export default class ShowTaskListByUser extends NavigationMixin(LightningElement) {
     @api currentUserId;
-    @api subsidiaryId;
+    // @api subsidiaryId;
     @api competencyId;
     @api subcompId;
     showEditTask = false;
     showTaskDetail = false;
-    recordId;
+    recordId = '';
     refreshTable;
     error;
     message;
     showMessage = false;
     //@track competencyDetail;
+    @api selectedSubName;
+    @api selectedCompName;
     @track taskList;
     @wire(CurrentPageReference) pageRef;
     @track columns = [{
@@ -44,13 +46,19 @@ export default class ShowTaskListByUser extends LightningElement {
             label: "Title",
             fieldName: "Title",
             editable: true,
-            initialWidth: 180,
+            initialWidth: 220,
         },
         {
             label: "Program",
             fieldName: "Program",
             initialWidth: 100,
             //editable: true
+        },
+        {
+            label: "Progress",
+            fieldName: "progress",
+            initialWidth: 100,
+            editable: true
         },
         {
             label: "Start Date",
@@ -91,6 +99,8 @@ export default class ShowTaskListByUser extends LightningElement {
                 newObject.Program = element.Program__c;
                 newObject.startDate = element.Start_Date__c;
                 newObject.targetDate = element.Target_Date__c;
+                newObject.progress = element.Progress__c;
+                newObject.state = element.State__c;
                 if (element.Assigned_To__r.Name) {
                     newObject.Assigned_To = element.Assigned_To__r.Name;
                 }
@@ -100,6 +110,7 @@ export default class ShowTaskListByUser extends LightningElement {
             if (Array.isArray(newArray) && newArray.length) {
                 this.taskList = newArray;
                 this.showMessage = false;
+                fireEvent(this.pageRef, "selectedSubIdForReport", this.subcompId);
                 // this.showDataReport();
             } else {
                 this.message = 'Could Not find any Task for the Requested Competency';
@@ -117,34 +128,57 @@ export default class ShowTaskListByUser extends LightningElement {
     connectedCallback() {
         console.log("currentUserId " + this.currentUserId);
         console.log("subId " + this.subcompId);
+        console.log("selectedSubName " + this.selectedSubName);
+        console.log("selectedCompName " + this.selectedCompName);
+        console.log("competencyId " + this.competencyId);
+        registerListener("updateEpicTable", this.handle, this);
+    }
+
+    handle() {
+        return refreshApex(this.refreshTable);
+    }
+
+    disconnectedCallback() {
+        unregisterAllListeners(this);
     }
 
     handleRowAction(event) {
         let actionName = event.detail.action.name;
         // console.log("actionName ====> " + actionName);
         let row = event.detail.row;
+        console.log('Row Data ' + JSON.stringify(row));
         this.recordId = event.detail.row.Id;
-        //  console.log("Id " + this.recordId);
+        console.log("Id " + this.recordId);
+
+        let recordData = {};
+        recordData.recordId = this.recordId;
+        recordData.userSubCompId = this.subcompId;
+        // recordData.competencyId = this.competencyId;
+        // recordData.state = event.detail.row.state;
+        // recordData.progress = event.detail.row.progress
+
         switch (actionName) {
-            case "add_sub_task":
-                this.showEditTask = false;
-                let newData = {};
-                console.log(
-                    "competency Id " + JSON.stringify(this.recordId) +
-                    "userSubCompId Id " + JSON.stringify(this.subcompId)
-                );
-                newData.recordId = this.recordId;
-                newData.userSubCompId = this.subcompId;
-                fireEvent(this.pageRef, "addSubTaskEvent", newData);
-                break;
-            case "show_sub_tasks":
-                this.showEditTask = false;
-                fireEvent(this.pageRef, "showSubTaskEvent", this.recordId);
-                break;
             case "view":
                 this.showEditTask = false;
-                console.log("Record Id in from view detail " + this.recordId);
-                fireEvent(this.pageRef, "detailTaskListEvent", this.recordId);
+                // fireEvent(this.pageRef, 'subTaskReportChart', this.recordId);; // event for sub tasks report
+                console.log("Record data in from view detail " + JSON.stringify(recordData));
+                // this[NavigationMixin.Navigate]({
+                //     "type": "standard__component",
+                //     "attributes": {
+                //         "componentName": "c__epicDetailWrapper"
+                //     },
+                //     state: {
+                //         c__recordData: recordData
+                //     }
+                // });
+
+                this[NavigationMixin.Navigate]({
+                    type: 'comm__namedPage',
+                    attributes: {
+                        name: 'taskDetail__c'
+                    }
+                });
+                sessionStorage.setItem('recordData', JSON.stringify(recordData));
                 break;
             case "edit":
                 this.showEditTask = true;
@@ -195,6 +229,7 @@ export default class ShowTaskListByUser extends LightningElement {
         fields[ID_FIELD.fieldApiName] = event.detail.draftValues[0].Id;
         fields[TITLE_FIELD.fieldApiName] = event.detail.draftValues[0].Title;
         fields[PROGRAM_FIELD.fieldApiName] = event.detail.draftValues[0].Program;
+        fields[PROGRESS_FIELD.fieldApiName] = event.detail.draftValues[0].program;
         fields[ASSIGNED_TO_FIELD.fieldApiName] =
             event.detail.draftValues[0].Assigned_To;
 
@@ -233,6 +268,7 @@ export default class ShowTaskListByUser extends LightningElement {
     }
 
     handleAddTask() {
+        fireEvent(this.pageRef, 'updateReportChart', 'Updated');
         return refreshApex(this.refreshTable);
     }
 
@@ -240,5 +276,10 @@ export default class ShowTaskListByUser extends LightningElement {
         this.showTaskDetail = false;
     }
 
+    handleTaskBack(event) {
+        this.isTaskTrue = false;
+        const customEvent = new CustomEvent("backcompetencyevent");
+        this.dispatchEvent(customEvent);
+    }
 
 }

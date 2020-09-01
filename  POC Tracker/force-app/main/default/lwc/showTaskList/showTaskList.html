@@ -1,9 +1,16 @@
 <template>
     <lightning-card>
         <div class="slds-page-header slds-page-header--object-home">
+            <div class="slds-float_right">
+                <lightning-button label="Back" title="Non-primary action" onclick={handleTaskBack}
+                    class="slds-m-left_x-small"></lightning-button>
+            </div>
             <lightning-layout>
                 <lightning-layout-item class="slds-m-left--small">
-                    <h1 class="slds-page-header__title slds-p-right--x-small">Tasks</h1>
+                    <h1 class="slds-page-header__title slds-p-right--x-small">{selectedSubsidiaryName} ->
+                        {selectedCompetencyName} -> Tasks</h1>
+                </lightning-layout-item>
+                <lightning-layout-item>
                 </lightning-layout-item>
             </lightning-layout>
         </div>
@@ -13,11 +20,11 @@
                 </lightning-datatable>
             </div>
         </template>
+
 <template if:false={isTaskDataAvilable}>
             <div class="slds-p-left_small">
-                <p>No Data Found</p>
+                <p>No Task Found</p>
             </div>
         </template>
-
 </lightning-card>
 </template>

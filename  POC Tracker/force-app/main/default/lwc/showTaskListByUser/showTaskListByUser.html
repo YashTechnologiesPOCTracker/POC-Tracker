@@ -1,4 +1,19 @@
 <template>
+    <div class="slds-page-header slds-page-header--object-home">
+        <div class="slds-float_right">
+            <lightning-button label="Back" title="Non-primary action" onclick={handleTaskBack}
+                class="slds-m-left_x-small"></lightning-button>
+        </div>
+        <lightning-layout>
+            <lightning-layout-item class="slds-m-left--small">
+                <h1 class="slds-page-header__title slds-p-right--x-small">{selectedSubName} -> {selectedCompName} ->
+                    Epics</h1>
+            </lightning-layout-item>
+            <lightning-layout-item>
+            </lightning-layout-item>
+        </lightning-layout>
+    </div>
+
     <c-add-task subcomp-id={subcompId} competency-id={competencyId} onaddevent={handleAddTask}></c-add-task>
 
     <div class="slds-m-around_medium">

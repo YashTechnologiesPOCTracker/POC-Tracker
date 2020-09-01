@@ -1,15 +1,9 @@
 import { LightningElement, track, api, wire } from "lwc";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 
-export default class EmployeeEditTask extends LightningElement {
+export default class EmployeeTaskView extends LightningElement {
     @api recordId;
     @api progress;
-    @track userEnteredProgressValue = 0;
-
-    progressOnChange(event) {
-        this.progress = event.target.value;
-        this.userEnteredProgressValue = event.target.value;
-    }
 
     closeModal() {
         const customEvent = new CustomEvent("closemodalevent");

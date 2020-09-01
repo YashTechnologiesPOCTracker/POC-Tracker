@@ -5,8 +5,8 @@ import { CurrentPageReference } from 'lightning/navigation';
 
 const columns = [{
         label: 'Id',
-        fieldName: 'Id',
-        initialWidth: 80
+        fieldName: 'Name',
+        initialWidth: 60
     },
     {
         label: 'Title',
@@ -35,18 +35,20 @@ const columns = [{
     },
 ];
 
-
-
 export default class ShowTaskList extends LightningElement {
 
     @track columns = columns;
-    @track compitancyId = '';
-    @track taskList;
-    refreshTable;
-    @api selectedCompitancyId;
-    @wire(CurrentPageReference) pageRef;
+
+    taskList;
+
     @api recordId;
-    @api isTaskDataAvilable = false;
+
+    isTaskDataAvilable = false;
+
+    @api selectedCompetencyName;
+
+    @api selectedSubsidiaryName;
+
 
 
     @wire(getTasks, { recordId: "$recordId" }) getTasks(result) {
@@ -60,6 +62,7 @@ export default class ShowTaskList extends LightningElement {
             newData.forEach((element) => {
                 let newObject = {};
                 newObject.Id = element.Id;
+                newObject.Name = element.Name;
                 newObject.Title = element.Title__c;
                 newObject.Program = element.Program__c;
                 newObject.startDate = element.Start_Date__c;
@@ -74,12 +77,13 @@ export default class ShowTaskList extends LightningElement {
             if (newArray.length) {
                 this.taskList = newArray;
                 this.isTaskDataAvilable = true;
+                this.isTaskTrue = true;
             } else {
                 this.taskList = [];
                 this.isTaskDataAvilable = false;
+                this.isTaskTrue = true;
             }
 
-            console.log(this.isTrue);
             console.log(
                 "task " + JSON.stringify(this.taskList)
             );
@@ -87,6 +91,12 @@ export default class ShowTaskList extends LightningElement {
             this.error = result.error;
             this.taskList = undefined;
         }
+    }
+
+    handleTaskBack(event) {
+        this.isTaskTrue = false;
+        const customEvent = new CustomEvent("backcompetencyevent");
+        this.dispatchEvent(customEvent);
     }
 
 

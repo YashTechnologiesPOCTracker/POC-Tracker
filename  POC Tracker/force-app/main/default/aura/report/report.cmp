@@ -1,7 +1,6 @@
 <aura:component controller="taskController" implements="force:appHostable,flexipage:availableForAllPageTypes" access="global">
-    
-<ltng:require scripts="{!$Resource.d3 + '/Chart.js'}"
-                afterScriptsLoaded="{!c.afterScriptsLoaded}" />
+
+    <ltng:require scripts="{!$Resource.d3 + '/Chart.js'}" afterScriptsLoaded="{!c.afterScriptsLoaded}" />
 
     <aura:attribute name="ready" type="Boolean" default="false" />
 

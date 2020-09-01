@@ -1,20 +1,16 @@
-import { LightningElement, wire } from "lwc";
+import { LightningElement, wire, api } from "lwc";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import { CurrentPageReference } from 'lightning/navigation';
 import { fireEvent, registerListener, unregisterAllListeners } from 'c/pubsub';
 
 export default class CreateSubTasks extends LightningElement {
-    enableSubTask = false;
-    parentTaskRecordId;
-    userSubCompId;
+    @api parentTaskRecordId;
+    @api userSubCompId;
     @wire(CurrentPageReference) pageRef;
 
-    handleButtonClick() {
-        this.enableSubTask = true;
-    }
 
     handleSuccess(event) {
-        // this.subTaskRecordId = event.detail.value;
+        this.subTaskRecordId = event.detail.value;
         console.log("Child Record Id " + this.subTaskRecordId);
         const inputFields = this.template.querySelectorAll("lightning-input-field");
         if (inputFields) {
@@ -23,9 +19,10 @@ export default class CreateSubTasks extends LightningElement {
             });
         }
         this.showSuccessToast();
-        this.enableSubTask = false;
         console.log('before subtaskaddedevent')
-        fireEvent(this.pageRef, "subTaskAddedEvent", 'Refresh Apex');
+            //fireEvent(this.pageRef, "subTaskAddedEvent", 'Refresh Apex');
+        const customEvent = new CustomEvent("addeventsuccess");
+        this.dispatchEvent(customEvent);
     }
 
     showSuccessToast() {
@@ -39,27 +36,36 @@ export default class CreateSubTasks extends LightningElement {
         );
     }
 
-    handleCancel() {
-        this.enableSubTask = false;
-    }
-
     closeForm() {
-        this.enableSubTask = false;
+        const inputFields = this.template.querySelectorAll("lightning-input-field");
+        if (inputFields) {
+            inputFields.forEach((element) => {
+                element.reset();
+            });
+        }
+
+        const customEvent = new CustomEvent("cancelevent");
+        this.dispatchEvent(customEvent);
     }
 
-    renderedCallback() {
-        registerListener("addSubTaskEvent", this.handleCallback, this);
-    }
 
-    handleCallback(detail) {
-        console.log('detail callback' + JSON.stringify(detail));
-        this.parentTaskRecordId = detail.recordId;
-        this.userSubCompId = detail.userSubCompId;
+    connectedCallback() {
+        //registerListener("addSubTaskEvent", this.handleCallback, this);
+        if (this.parentTaskRecordId && this.userSubCompId) {
+            this.enableSubTask = true;
+        }
         console.log('check ' + JSON.stringify(this.parentTaskRecordId + ' ' + this.userSubCompId));
-        this.enableSubTask = true;
     }
 
-    disconnectedCallback() {
-        unregisterAllListeners(this);
-    }
+    // handleCallback(detail) {
+    //     console.log('detail callback' + JSON.stringify(detail));
+    //     this.parentTaskRecordId = detail.recordId;
+    //     this.userSubCompId = detail.userSubCompId;
+    //     console.log('check ' + JSON.stringify(this.parentTaskRecordId + ' ' + this.userSubCompId));
+    //     this.enableSubTask = true;
+    // }
+
+    // disconnectedCallback() {
+    //     unregisterAllListeners(this);
+    // }
 }

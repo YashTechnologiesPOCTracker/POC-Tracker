@@ -1,35 +1,59 @@
 <template>
-    <div class="slds-page-header slds-page-header--object-home">
-      <lightning-layout>
-        <lightning-layout-item class="slds-m-left--small">
-          <h1 class="slds-page-header__title slds-p-right--x-small">Compitancy</h1>
-        </lightning-layout-item>
-      </lightning-layout>
-    </div>
-   
-    <div class="slds-pill_container">
-      <template if:true={isDataAvilable}>
-        <template for:each={compitancyList} for:item="a">
-          <div class="slds-p-left_small" key={a.Id}>
-            <span class="slds-pill slds-pill_link">
-              <a href="javascript:void(0);" class="slds-pill__action" title="Full pill label verbiage mirrored here">
-                <span class="slds-pill__label" onclick={handleClick} data-id={a.Id}>{a.CompetencyName}</span>
-              </a>
-            </span>
+  <template if:true={isCompetencyTrue}>
+    <lightning-card>
+      <div class="slds-page-header slds-page-header--object-home">
+        <div class="slds-float_right">
+          <lightning-button label="Back" title="Non-primary action" onclick={handleCompetencyBack}
+            class="slds-m-left_x-small"></lightning-button>
+        </div>
+        <lightning-layout>
+          <lightning-layout-item class="slds-m-left--small">
+            <h1 class="slds-page-header__title slds-p-right--x-small">{selectedSubsidiaryName} -> Competencies</h1>
+          </lightning-layout-item>
+        </lightning-layout>
+      </div>
+
+      <div class="slds-card__body_inner">
+        <template if:true={isDataAvilable}>
+          <!-- Start Competency list -->
+          <lightning-layout multiple-rows="true" pull-to-boundary="small">
+            <template for:each={competencyList} for:item="a">
+              <lightning-layout-item key={a.Id} size="3" class="slds-var-p-around_x-small">
+                <!-- Start Competency tile -->
+                <a>
+                  <div class="slds-text-align_center">
+                  <lightning-card title={a.CompetencyName} class="competency-tile" data-id={a.Id}
+                    data-name={a.CompetencyName} onclick={handleCompetencyClick}>
+                    <div class="slds-var-p-horizontal_small bear-tile-body">
+                    </div>
+                  </lightning-card>
+                  </div>
+                </a>
+                <!-- End Competency tile -->
+              </lightning-layout-item>
+            </template>
+</lightning-layout>
+</template>
+<!-- End Competency list -->
+<template if:false={isDataAvilable}>
+          <div class="slds-p-left_small">
+            <p>No Competency Found</p>
           </div>
         </template>
+<!-- Data failed to load -->
+<template if:true={error}>
+          <div class="slds-text-color_error">
+            An error occurred while loading the Competency list
+          </div>
+        </template>
+</div>
+</lightning-card>
 </template>
 
-<template if:false={isDataAvilable}>
-        <div class="slds-p-left_small">
-          <p>No Data Found</p>
-        </div>
-      </template>
-</div>
-
-<template if:true={isTrueTask}>
-      <c-show-task-list record-id={selectedCompitancyId}>
-      </c-show-task-list>
-    </template>
+<template if:true={isTaskTrue}>
+    <c-show-task-list record-id={selectedCompetencyId} onbackcompetencyevent={handleBackCompetency}
+      selected-subsidiary-name={selectedSubsidiaryName} selected-competency-name={selectedCompetencyName}>
+    </c-show-task-list>
+  </template>
 
 </template>
