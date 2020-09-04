@@ -1,4 +1,4 @@
-import { LightningElement } from 'lwc';
+import { LightningElement, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import userPTGName from '@salesforce/apex/taskController.getPTGNameForLoggedInUser';
 import getTask from '@salesforce/apex/taskController.getTask';
@@ -14,6 +14,41 @@ export default class AddDraggedDataToTask extends LightningElement {
     startDate;
     targetDate;
     subcompId;
+    @track array = [];
+    @track subtaskList;
+    @track columns = [
+        // {
+        //     label: "ID",
+        //     fieldName: "Name",
+        //     initialWidth: 60
+        // },
+        {
+            label: "Title",
+            fieldName: "title",
+            editable: true,
+            initialWidth: 190
+        },
+        {
+            label: "Program",
+            fieldName: "Program",
+            initialWidth: 120
+        },
+        {
+            label: "Start Date",
+            fieldName: "startDate",
+            initialWidth: 105
+        },
+        {
+            label: "Target Date",
+            fieldName: "targetDate",
+            initialWidth: 105
+        },
+        {
+            label: "Assigned To",
+            fieldName: "Assigned_To",
+            initialWidth: 120
+        },
+    ];
 
     openModal() {
         this.bShowModal = true;
@@ -24,14 +59,7 @@ export default class AddDraggedDataToTask extends LightningElement {
     }
 
     connectedCallback() {
-        userPTGName({ 'currentUserId': this.currentUserId })
-            .then(data => {
-                console.log('Data in add task-->>>>>> ' + JSON.stringify(data));
-                this.competencyId = data[0].Id;
-            })
-            .catch(err => {
-                console.log('Error ' + error);
-            })
+        this.array = [];
     }
 
 
@@ -67,17 +95,27 @@ export default class AddDraggedDataToTask extends LightningElement {
     dropElement(event) {
         this.recordId = event.dataTransfer.getData('taskData');
         console.log('Data recordId:', JSON.stringify(this.recordId));
+
+        //let array = [];
         getTask({ 'recordId': this.recordId })
             .then(data => {
+                let obj = {}
                 console.log('New Data: ', JSON.stringify(data));
-                this.title = data.Title__c;
-                this.subcompId = data.Subsidiary_CompetencyId__c;
-                this.startDate = data.Start_Date__c;
-                this.targetDate = data.Target_Date__c;
+                obj.title = data.Title__c;
+                obj.subcompId = data.Subsidiary_CompetencyId__c;
+                obj.startDate = data.Start_Date__c;
+                obj.targetDate = data.Target_Date__c;
+                obj.program = '';
+                obj.Assigned_To = '';
+
+
+                this.array.push(obj);
+                console.log('Array ' + this.array);
+                this.subtaskList = this.array;
+                console.log('sub task list 1' + JSON.stringify(this.subtaskList));
             })
             .catch(error => {
                 console.log('Error ' + error.message);
             });
     }
-
 }

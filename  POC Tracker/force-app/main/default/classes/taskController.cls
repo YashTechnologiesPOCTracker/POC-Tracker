@@ -1,8 +1,11 @@
-public with sharing class taskController {
+public without sharing class taskController {
     
     @AuraEnabled(cacheable=true)
-    public static List<PTG__c> getPTGList() {
-        return [SELECT Id, Name FROM PTG__c];
+    public static string getUserProfile() {
+        Id profileId= userinfo.getProfileId();
+        String profileName=[Select Id,Name from Profile where Id=:profileId].Name;
+        system.debug('ProfileName'+profileName);
+        return profileName;
     }
 
     @AuraEnabled(cacheable=true)
@@ -46,7 +49,7 @@ public with sharing class taskController {
     @AuraEnabled(cacheable=true)
     public static List<Tracker__c> listSubTask(String parentId){
         System.debug('Parent Id ' + parentId);
-        List<Tracker__c> listofsubtasks = [select Id, Name, Program__c, Title__c, Start_Date__c, Target_Date__c, Assigned_To__r.Name from 
+        List<Tracker__c> listofsubtasks = [select Id, Name, Program__c, Title__c, Start_Date__c, Target_Date__c, Progress__c, Assigned_To__r.Name from 
                                         Tracker__c where Parent_Task__r.Id =: parentId];
         System.debug('sub tasks list ' + listofsubtasks);
         return listofsubtasks;                                
@@ -82,8 +85,8 @@ public with sharing class taskController {
     @AuraEnabled(cacheable=true)
     public static List<Tracker__c> getTasks(String recordId) {
         system.debug('selectedCompId'+recordId);
-        List<Tracker__c> listTracker =  [SELECT Id, Name, Title__c, Program__c, Start_Date__c, Target_Date__c,
-                                    Assigned_To__r.Name FROM Tracker__c Where Subsidiary_CompetencyId__c=:recordId];
+        List<Tracker__c> listTracker =  [SELECT Id, Name, Title__c, Program__c, Start_Date__c, Target_Date__c, Progress__c,
+                                    Assigned_To__r.Name FROM Tracker__c Where Subsidiary_CompetencyId__c=:recordId AND Parent_Task__c=null];
         system.debug('list -' + listTracker);
         return listTracker;
     }
@@ -145,33 +148,94 @@ public with sharing class taskController {
 
 
     @AuraEnabled
-    public static List<DataSet> callReport(String scId, string userId){
-        system.debug('Subsidiary Id: ' + scId);
-        List<AggregateResult> result =  [Select Count(Id) cnt, Program__c from Tracker__c 
-                                    where (Subsidiary_CompetencyId__c=: scId AND Parent_Task__c=null AND OwnerId=: userId AND state__c <> 'Completed') group by Program__c];
+    public static List<DataSet> callReport(String scId, string userId, string profileName){
+        system.debug('Subsidiary Id: ' + scId + 'user Id: ' + userId + 'profilename ' + profileName);
         List<DataSet> dataSet = new List<DataSet>();
-        for(AggregateResult ar:result){
-            String status =  (String)ar.get('Program__c') ;
-            Integer total = (Integer)ar.get('cnt');
-            dataSet.add(new DataSet(status ,total));
+        if(profileName == 'Lead'){
+            system.debug('in if');
+            List<AggregateResult> result =  [Select Count(Id) cnt, Program__c from Tracker__c 
+                                    where (Subsidiary_CompetencyId__c=: scId AND Parent_Task__c=null AND OwnerId=: userId AND state__c <> 'Completed') group by Program__c];
+            
+            for(AggregateResult ar:result){
+                String status =  (String)ar.get('Program__c') ;
+                Integer total = (Integer)ar.get('cnt');
+                dataSet.add(new DataSet(status ,total));
+            }
         }
+        else{
+            system.debug('in else: profile: ' +profileName);
+            List<AggregateResult> result =  [Select Count(Id) cnt, Program__c from Tracker__c 
+                                    where (Subsidiary_CompetencyId__c=: scId AND Parent_Task__c=null AND state__c <> 'Completed') group by Program__c];
+            
+            for(AggregateResult ar:result){
+                String status =  (String)ar.get('Program__c') ;
+                Integer total = (Integer)ar.get('cnt');
+                dataSet.add(new DataSet(status ,total));
+            }
+        }    
     System.debug('dataSet ' + dataSet);
     return dataSet ;                      
     } 
 
+    // @AuraEnabled
+    // public static List<DataSet> callReportHead(String scId, string userId){
+    //     system.debug('Subsidiary Id: ' + scId);
+    //     List<AggregateResult> result =  [Select Count(Id) cnt, Program__c from Tracker__c 
+    //                                 where (Subsidiary_CompetencyId__c=: scId AND Parent_Task__c=null AND state__c <> 'Completed') group by Program__c];
+    //     List<DataSet> dataSet = new List<DataSet>();
+    //     for(AggregateResult ar:result){
+    //         String status =  (String)ar.get('Program__c') ;
+    //         Integer total = (Integer)ar.get('cnt');
+    //         dataSet.add(new DataSet(status ,total));
+    //     }
+    // System.debug('dataSet ' + dataSet);
+    // return dataSet ;                      
+    // }
+
     @AuraEnabled
-    public static List<DataSet> callSubReport(String parentId, string userId){
-        system.debug('parentId Id: ' + parentId);
-        List<AggregateResult> result =  [Select Count(Id) cnt, Program__c from Tracker__c 
-                    where ( Parent_Task__c=: parentId AND OwnerId=: userId AND state__c <> 'Completed') group by Program__c];
+    public static List<DataSet> callSubReport(String parentId, string userId, string profileName){
+        system.debug('parentId Id: ' + parentId + 'profilename ' + profileName);
         List<DataSet> dataSet = new List<DataSet>();
-        for(AggregateResult ar:result){
-            String status =  (String)ar.get('Program__c') ;
-            Integer total = (Integer)ar.get('cnt');
-            dataSet.add(new DataSet(status ,total));
+        if(profileName == 'Lead'){
+            system.debug('in if');
+            List<AggregateResult> result =  [Select Count(Id) cnt, Program__c from Tracker__c 
+                    where ( Parent_Task__c=: parentId AND OwnerId=: userId AND state__c <> 'Completed') group by Program__c];
+           
+            for(AggregateResult ar:result){
+                String status =  (String)ar.get('Program__c') ;
+                Integer total = (Integer)ar.get('cnt');
+                dataSet.add(new DataSet(status ,total));
+            }
         }
+        else{
+            system.debug('in else: profile: ' +profileName);
+            List<AggregateResult> result =  [Select Count(Id) cnt, Program__c from Tracker__c 
+                    where ( Parent_Task__c=: parentId AND state__c <> 'Completed') group by Program__c];
+    
+            for(AggregateResult ar:result){
+                String status =  (String)ar.get('Program__c') ;
+                Integer total = (Integer)ar.get('cnt');
+                dataSet.add(new DataSet(status ,total));
+            }
+        }
+        
     System.debug('dataSet ' + dataSet);
     return dataSet ;                      
     } 
+
+    // @AuraEnabled
+    // public static List<DataSet> callSubReportH(String parentId, string userId){
+    //     system.debug('parentId Id: ' + parentId);
+    //     List<AggregateResult> result =  [Select Count(Id) cnt, Program__c from Tracker__c 
+    //                 where ( Parent_Task__c=: parentId AND state__c <> 'Completed') group by Program__c];
+    //     List<DataSet> dataSet = new List<DataSet>();
+    //     for(AggregateResult ar:result){
+    //         String status =  (String)ar.get('Program__c') ;
+    //         Integer total = (Integer)ar.get('cnt');
+    //         dataSet.add(new DataSet(status ,total));
+    //     }
+    // System.debug('dataSet ' + dataSet);
+    // return dataSet ;                      
+    // } 
 
 }

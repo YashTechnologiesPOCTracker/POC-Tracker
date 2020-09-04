@@ -22,7 +22,6 @@
                                             aria-haspopup="true" title="">
                                             <span
                                                 class="slds-grid slds-has-flexi-truncate slds-grid_vertical-align-center">
-                                                <span class="slds-truncate" title="My Leads">General Epics</span>
                                                 <svg class="slds-button__icon slds-button__icon_right slds-no-flex"
                                                     aria-hidden="true">
                                                     <use xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#down">
@@ -41,22 +40,26 @@
                 <ul class="slds-has-dividers_around-space">
                     <article class="slds-tile slds-tile_board">
                         <template if:true={taskList.data} for:each={taskList.data} for:item="task">
-                            <div class="slds-grid slds-wrap" key={task.Id} draggable="true" data-item={task.Id}
+                            <div class="slds-grid slds-grid_vertical" key={task.Id} draggable="true" data-item={task.Id}
                                 ondragstart={handleDragStart}>
-                                <ul aria-multiselectable="true" class="slds-has-dividers_around-space" role="listbox">
-                                    <li class="slds-item">
-                                        <article class="slds-tile slds-tile_board">
-                                            <div class="slds-tile__detail">
-                                                <p class="slds-text-heading_medium">{task.Title__c}</p>
-                                                <p class="slds-truncate" title="Start Date">Start Date:
+                                <div class="slds-p-top_x-small">
+
+                                    <ul aria-multiselectable="true" class="task-tile" role="listbox">
+                                        <li class="slds-item">
+                                            <article class="slds-tile slds-tile_board">
+                                                <div class="slds-tile__detail">
+                                                    <p class="slds-text-heading_medium" style="padding-left:10px">
+                                                        {task.Title__c}</p>
+                                                    <!-- <p class="slds-truncate" title="Start Date">Start Date:
                                                     {task.Start_Date__c}
                                                 </p>
                                                 <p class="slds-truncate" title="Target Date">Target Date:
-                                                    {task.Target_Date__c}</p>
-                                            </div>
-                                        </article>
-                                    </li>
-                                </ul>
+                                                    {task.Target_Date__c}</p> -->
+                                                </div>
+                                            </article>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
                         </template>
 </article>

@@ -37,21 +37,22 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
     @api selectedCompName;
     @track taskList;
     @wire(CurrentPageReference) pageRef;
-    @track columns = [{
-            label: "ID",
-            fieldName: "Name",
-            initialWidth: 80
-        },
+    @track columns = [
+        // {
+        //     label: "ID",
+        //     fieldName: "Name",
+        //     initialWidth: 60
+        // },
         {
             label: "Title",
             fieldName: "Title",
             editable: true,
-            initialWidth: 220,
+            initialWidth: 200,
         },
         {
             label: "Program",
             fieldName: "Program",
-            initialWidth: 100,
+            initialWidth: 130,
             //editable: true
         },
         {
@@ -63,13 +64,13 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
         {
             label: "Start Date",
             fieldName: "startDate",
-            initialWidth: 110,
+            initialWidth: 105,
             //editable: true
         },
         {
             label: "Target Date",
             fieldName: "targetDate",
-            initialWidth: 110,
+            initialWidth: 105,
             //editable: true
         },
         {
@@ -134,6 +135,7 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
         registerListener("updateEpicTable", this.handle, this);
     }
 
+
     handle() {
         return refreshApex(this.refreshTable);
     }
@@ -162,16 +164,6 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
                 this.showEditTask = false;
                 // fireEvent(this.pageRef, 'subTaskReportChart', this.recordId);; // event for sub tasks report
                 console.log("Record data in from view detail " + JSON.stringify(recordData));
-                // this[NavigationMixin.Navigate]({
-                //     "type": "standard__component",
-                //     "attributes": {
-                //         "componentName": "c__epicDetailWrapper"
-                //     },
-                //     state: {
-                //         c__recordData: recordData
-                //     }
-                // });
-
                 this[NavigationMixin.Navigate]({
                     type: 'comm__namedPage',
                     attributes: {
@@ -229,7 +221,7 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
         fields[ID_FIELD.fieldApiName] = event.detail.draftValues[0].Id;
         fields[TITLE_FIELD.fieldApiName] = event.detail.draftValues[0].Title;
         fields[PROGRAM_FIELD.fieldApiName] = event.detail.draftValues[0].Program;
-        fields[PROGRESS_FIELD.fieldApiName] = event.detail.draftValues[0].program;
+        fields[PROGRESS_FIELD.fieldApiName] = event.detail.draftValues[0].progress;
         fields[ASSIGNED_TO_FIELD.fieldApiName] =
             event.detail.draftValues[0].Assigned_To;
 
@@ -244,6 +236,7 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
                     })
                 );
                 this.draftValues = [];
+                fireEvent(this.pageRef, 'updateReportChart', 'Updated');
                 return refreshApex(this.refreshTable);
             })
             .catch((error) => {

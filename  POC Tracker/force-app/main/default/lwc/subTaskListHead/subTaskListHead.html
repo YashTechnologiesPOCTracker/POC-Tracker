@@ -7,8 +7,7 @@
                     <lightning-button label="Close" onclick={handleSubListClose}></lightning-button>
                 </div>
                 <lightning-datatable key-field="Id" data={subtaskList} columns={columns} hide-checkbox-column="true"
-                    onsave={handleSave} draft-values={draftValues} onrowaction={handleRowAction}
-                    show-row-number-column="false">
+                    onsave={handleSave} draft-values={draftValues} onrowaction={handleRowAction} show-row-number-column="false">
                 </lightning-datatable>
             </lightning-card>
         </template>
@@ -21,15 +20,16 @@
         {error}
     </template>
 
-<div class="slds-m-around_medium">
+<!-- <div class="slds-m-around_medium">
     <template if:true={showEditTask}>
             <c-edit-task record-id={recordId} onclosemodalevent={handleCloseModal} onupdateevent={handleUpdateTask}>
             </c-edit-task>
         </template>
-</div>
+</div> -->
 
-<!-- <template if:false={isLead}>
-    <c-show-sub-task-detail record-id={recordId} onclosesubtaskdetail={handleCloseSubTask}></c-show-sub-task-detail>
-</template> -->
+<template if:true={showSubTaskDetail}>
+    <c-sub-task-detail-for-head record-id={recordId} progress={progress} onclosesubtaskdetail={handleCloseSubTask}>
+        </c-sub-task-detail-for-head>
+</template>
 
 </template>

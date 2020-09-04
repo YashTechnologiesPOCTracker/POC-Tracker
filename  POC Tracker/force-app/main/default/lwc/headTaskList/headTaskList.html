@@ -1,114 +1,88 @@
 <template>
     <lightning-card icon-name="action:record" title="Epic Detail">
-        <!-- <template if:true={isLead}> -->
         <div slot="actions">
             <lightning-button class="slds-button slds-button_left" label='Edit' onclick={handleEdit}></lightning-button>
             <lightning-button class="slds-button slds-button_middle" label='Show Sub-Epics' onclick={handleShowSubEpic}>
             </lightning-button>
-            <lightning-button class="slds-button slds-button_right" label='Add Sub-Epic' onclick={handleAddSubEpic}>
-            </lightning-button>
-            <lightning-button-menu alternative-text="Show menu" onselect={handleSelect} disabled={isDisabled}>
+            <!-- <lightning-button class="slds-button slds-button_right" label='Add Sub-Epic' onclick={handleAddSubEpic}>
+            </lightning-button> -->
+            <!-- <lightning-button-menu alternative-text="Show menu" onselect={handleSelect} disabled={isDisabled}>
                 <lightning-menu-item prefix-icon-name="utility:change_owner" label="Reassign" value="reassign">
                 </lightning-menu-item>
                 <lightning-menu-item prefix-icon-name="utility:error" label="Overdue" value="overdue">
                 </lightning-menu-item>
                 <lightning-menu-item prefix-icon-name="utility:success" label="Close" value="close">
                 </lightning-menu-item>
-            </lightning-button-menu>
+            </lightning-button-menu> -->
         </div>
-        <!-- </template> -->
-<!-- <template if:false={isLead}>
-            <div slot="actions">
-                 <lightning-button class="slds-button slds-button_left" label='Edit' onclick={handleEdit}></lightning-button>
-                 
-<lightning-button class="slds-button slds-button_middle" label='Show Sub-Epics' onclick={handleShowSubEpic}>
-</lightning-button>
- <lightning-button class="slds-button slds-button_right" label='Add Sub-Epic' onclick={handleAddSubEpic}>
-                </lightning-button>
-<lightning-button-menu alternative-text="Show menu" onselect={handleSelect} disabled={isDisabled}>
-                    <lightning-menu-item prefix-icon-name="utility:change_owner" label="Reassign" value="reassign">
-                    </lightning-menu-item>
-                    <lightning-menu-item prefix-icon-name="utility:error" label="Overdue" value="overdue">
-                    </lightning-menu-item>
-                    <lightning-menu-item prefix-icon-name="utility:success" label="Close" value="close">
-                    </lightning-menu-item>
-                </lightning-button-menu>
-</div>
-</template> -->
-</lightning-card>
-<br />
-<lightning-card variant="narrow">
-    <lightning-record-view-form record-id={recordId} object-api-name="Tracker__c">
-        <div class="slds-grid slds-wrap">
-            <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+
+    </lightning-card>
+    <br />
+    <lightning-card variant="narrow">
+        <lightning-record-view-form record-id={recordId} object-api-name="Tracker__c">
+            <div class="slds-grid slds-wrap">
+                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
                     <lightning-output-field field-name="Name"></lightning-output-field>
                 </span>
-            <span class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-hide">
+                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-hide">
                     <lightning-output-field field-name="Subsidiary_CompetencyId__c">
                     </lightning-output-field>
                 </span>
-        </div>
-        <div class="slds-grid slds-wrap">
-            <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+            </div>
+            <div class="slds-grid slds-wrap">
+                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
                     <lightning-output-field field-name="Title__c"></lightning-output-field>
                 </span>
-            <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
                     <lightning-output-field field-name="Program__c"></lightning-output-field>
                 </span>
-        </div>
-        <div class="slds-grid slds-wrap">
-            <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+            </div>
+            <div class="slds-grid slds-wrap">
+                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
                     <lightning-output-field field-name="Start_Date__c"></lightning-output-field>
                 </span>
-            <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
                     <lightning-output-field field-name="Target_Date__c"></lightning-output-field>
                 </span>
-        </div>
-        <div class="slds-grid slds-wrap">
-            <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+            </div>
+            <div class="slds-grid slds-wrap">
+                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
                     <lightning-output-field field-name="State__c"></lightning-output-field>
                 </span>
-            <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
                     <lightning-output-field field-name="Assigned_To__c"></lightning-output-field>
                 </span>
-        </div>
-        <div class="slds-grid slds-wrap">
-            <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+            </div>
+            <div class="slds-grid slds-wrap">
+                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
                     <lightning-output-field field-name="Progress__c"></lightning-output-field>
                 </span>
-            <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
                     <lightning-output-field field-name="Description__c"></lightning-output-field>
                 </span>
-        </div>
-        <div class="slds-grid slds-wrap">
-            <span class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-hide">
+            </div>
+            <div class="slds-grid slds-wrap">
+                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-hide">
                     <lightning-output-field field-name="Progress__c"></lightning-output-field>
                 </span>
-            <span class="slds-size_1-of-2 slds-max-small-size_1-of-1 ">
+                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1 ">
                     <div class="">
                         <lightning-progress-bar class="slds-progress-bar__value_success slds-progress-bar_circular"
                             value={progress} size="large"></lightning-progress-bar>
                     </div>
                 </span>
-        </div>
-    </lightning-record-view-form>
+            </div>
+        </lightning-record-view-form>
+        <br />
+    </lightning-card>
     <br />
-</lightning-card>
-<br />
-<template if:true={showSubEpic}>
+    <template if:true={showSubEpic}>
         <lightning-card>
             <c-show-sub-tasks-list parent-id={recordId} onsublistclose={subListCloseHandler}></c-show-sub-tasks-list>
         </lightning-card>
     </template>
 
-<!-- <template if:true={showSubEpicH}>
-        <lightning-card>
-            <c-sub-task-list-head  parent-id={recordId} onsublistclose={subListCloseHandlerH}
-            profile-name={profileName}></c-sub-task-list-head>
-        </lightning-card>
-    </template> -->
-
-<template if:true={showEdit}>
+<!-- <template if:true={showEdit}>
         <c-edit-task record-id={recordId} onclosemodalevent={handleCloseModal} onupdateevent={handleUpdateTask}>
         </c-edit-task>
     </template>
@@ -156,6 +130,6 @@
             </div>
         </section>
         <div class="slds-backdrop slds-backdrop_open"></div>
-    </template>
+    </template> -->
 
 </template>

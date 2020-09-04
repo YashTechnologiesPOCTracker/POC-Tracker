@@ -4,27 +4,43 @@ import { CurrentPageReference } from "lightning/navigation";
 import { registerListener, unregisterAllListeners } from "c/pubsub";
 import chartjs from '@salesforce/resourceUrl/ChartJs';
 import { loadScript } from 'lightning/platformResourceLoader';
-import { ShowToastEvent } from 'lightning/platformShowToastEvent'
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import getProfile from '@salesforce/apex/taskController.getUserProfile';
 import userId from '@salesforce/user/Id';
 
 export default class ShowReport extends LightningElement {
     isDataAvailable = false;
-    scId;
-    //parentId; // sub task parent id
+    @api scId;
     refreshReport;
+    profileName;
     @wire(CurrentPageReference) pageRef;
 
     connectedCallback() {
         console.log("Connected Callback of ShowReport");
-        registerListener("selectedSubIdForReport", this.handleCallback, this);
-        registerListener("SCIdFormShowCompList", this.handleCallback, this);
+        this.getProfileData();
+
+        console.log('scID: ' + this.scId);
+        //registerListener("selectedSubIdForReport", this.handleCallback, this);
+        //registerListener("SCIdFormShowCompList", this.handleCallback, this);
         registerListener("updateReportChart", this.handle, this);
-        //registerListener("showSubTaskReport", this.handleCall, this);
+
+        this.getReportData();
+    }
+
+    getProfileData() {
+        getProfile()
+            .then(data => {
+                this.profileName = data;
+            })
+            .catch(error => {
+                console.log('Error ' + error.message);
+            })
     }
 
     handleCallback(detail) {
         console.log('detail id ' + detail);
         this.scId = detail;
+        console.log('SC id ' + this.scId);
         this.getReportData();
     }
 
@@ -38,8 +54,10 @@ export default class ShowReport extends LightningElement {
     }
 
     getReportData() {
-        callReport({ scId: this.scId, userId: userId })
+        callReport({ scId: this.scId, userId: userId, profileName: this.profileName })
             .then((data) => {
+                console.log('userId ' + userId);
+                console.log('data in report ' + JSON.stringify(data));
                 this.refreshReport = data;
                 this.chart.data.labels = [];
                 this.chart.data.datasets.forEach((dataset) => {
@@ -51,7 +69,7 @@ export default class ShowReport extends LightningElement {
                         this.updateChart(data[key].count, data[key].label);
                     }
                     this.isDataAvailable = true;
-                    console.log('scId ' + this.scId + 'refresh report: ' + JSON.stringify(this.refreshReport));
+                    console.log('scId get report ' + this.scId);
                 }
 
             })

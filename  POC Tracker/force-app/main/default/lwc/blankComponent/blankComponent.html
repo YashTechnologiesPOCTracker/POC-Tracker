@@ -1,9 +1,8 @@
 <template>
-    <template if:true={isTrue}>
-    <div class="slds-size--8-of-8 slds-p-around--large">
-        <lightning-card title="A Blank Component">
-            Testing
-        </lightning-card>
-    </div>
-</template>
+    <template if:true={isTaskTrue}>
+        <c-show-report sc-id={SCId}></c-show-report>
+    </template>
+<template if:true={isSubTaskTrue}>
+        <c-show-sub-task-report parent-id={parentId}></c-show-sub-task-report>
+    </template>
 </template>

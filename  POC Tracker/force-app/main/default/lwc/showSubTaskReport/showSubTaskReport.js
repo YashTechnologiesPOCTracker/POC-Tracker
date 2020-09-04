@@ -1,39 +1,53 @@
-import { LightningElement, wire } from 'lwc';
+import { LightningElement, wire, api } from 'lwc';
 import callSubReport from "@salesforce/apex/taskController.callSubReport";
 import { CurrentPageReference } from "lightning/navigation";
 import { registerListener, unregisterAllListeners } from "c/pubsub";
 import chartjs from '@salesforce/resourceUrl/ChartJs';
 import { loadScript } from 'lightning/platformResourceLoader';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent'
+import getProfile from '@salesforce/apex/taskController.getUserProfile';
 import userId from '@salesforce/user/Id';
 
 export default class ShowSubTaskReport extends LightningElement {
-
-    parentId;
+    @api parentId;
+    profileName;
     refreshReport;
     error;
     @wire(CurrentPageReference) pageRef;
 
 
     connectedCallback() {
+        this.getProfileData();
         console.log("Connected Callback of Show Sub Report");
-        registerListener("subTaskReportChart", this.handleCallback, this);
+        //registerListener("subTaskReportChart", this.handleCallback, this);
         registerListener("subTaskAddedEvent", this.handleCall, this);
         registerListener("editReportUpdate", this.handleCall, this);
         registerListener("deleteReportUpdate", this.handleCall, this);
         console.log('after regis....subTaskAddedEvent');
-    }
-
-
-    handleCallback(detail) {
-        console.log('parent id detail' + detail);
-        this.parentId = detail;
         this.getSubTaskReport();
     }
+
+    getProfileData() {
+        getProfile()
+            .then(data => {
+                this.profileName = data;
+                console.log('profileName in subreport ' + this.profileName);
+            })
+            .then(error => {
+                console.log('Error ' + error.message);
+            })
+    }
+
+    // handleCallback(detail) {
+    //     console.log('parent id detail' + detail);
+    //     this.parentId = detail;
+    //     this.getSubTaskReport();
+    // }
 
     handleCall(detail) {
         console.log(' detail' + detail);
         this.getSubTaskReport();
+        //this.handleCallback(detail);
     }
 
     disconnectedCallback() {
@@ -41,7 +55,7 @@ export default class ShowSubTaskReport extends LightningElement {
     }
 
     getSubTaskReport() {
-        callSubReport({ parentId: this.parentId, userId: userId })
+        callSubReport({ parentId: this.parentId, userId: userId, profileName: this.profileName })
             .then((data) => {
                 console.log('Report: sub task data ' + JSON.stringify(data) + 'id ' + this.parentId);
                 this.refreshReport = data;
@@ -64,6 +78,7 @@ export default class ShowSubTaskReport extends LightningElement {
                 // this.isDataAvailable = false;
                 // this.error = err.message;
             });
+
     }
 
     chart;

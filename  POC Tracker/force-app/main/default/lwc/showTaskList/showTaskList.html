@@ -8,7 +8,7 @@
             <lightning-layout>
                 <lightning-layout-item class="slds-m-left--small">
                     <h1 class="slds-page-header__title slds-p-right--x-small">{selectedSubsidiaryName} ->
-                        {selectedCompetencyName} -> Tasks</h1>
+                        {selectedCompetencyName} -> Epic</h1>
                 </lightning-layout-item>
                 <lightning-layout-item>
                 </lightning-layout-item>
@@ -16,7 +16,8 @@
         </div>
         <template if:true={isTaskDataAvilable}>
             <div style="height: 300px;">
-                <lightning-datatable key-field="Id" data={taskList} columns={columns} hide-checkbox-column="true">
+                <lightning-datatable key-field="Id" data={taskList} columns={columns} hide-checkbox-column="true"
+                onrowaction={handleRowAction}>
                 </lightning-datatable>
             </div>
         </template>

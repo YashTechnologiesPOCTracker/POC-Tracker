@@ -8,9 +8,11 @@ import STATE_FIELD from "@salesforce/schema/Tracker__c.State__c";
 import PROGRESS_FIELD from "@salesforce/schema/Tracker__c.Progress__c";
 import IS_OVERDUE_FIELD from "@salesforce/schema/Tracker__c.isOverdue__c";
 import getTask from '@salesforce/apex/taskController.getCurrentTask';
+import getProfile from '@salesforce/apex/taskController.getUserProfile';
 
 export default class ShowTaskDetail extends LightningElement {
     @wire(CurrentPageReference) pageRef;
+    profileName;
     recordId;
     userSubCompId;
     // competencyId;
@@ -18,28 +20,56 @@ export default class ShowTaskDetail extends LightningElement {
     showTask = false;
     showEdit = false;
     showSubEpic = false;
+    showSubEpicH = false;
     addSubEpic = false;
     showReassigForm = false;
+    isDisabled = false;
+    isLead;
     state;
     progress;
     refreshData;
 
     connectedCallback() {
+        //this.userProfile();
+        //console.log('Profile Name' + JSON.stringify(this.profileName));
+        //this.competencyId = recordState.competencyId;
+        //this.state = recordState.state;
         this.recordData = sessionStorage.getItem('recordData');
         let recordState = JSON.parse(this.recordData);
 
         console.log('RecordData: state ' + recordState);
-
         this.recordId = recordState.recordId;
         this.userSubCompId = recordState.userSubCompId;
-        //this.competencyId = recordState.competencyId;
-        //this.state = recordState.state;
-        console.log('recordId: ' + this.recordId + ' userSubCompId: ' + this.userSubCompId);
         this.getCurrentTask(this.recordId);
-        //fireEvent(this.pageRef, "showSubTaskReport", this.recordId); // event for sub tasks report
-        // fireEvent(this.pageRef, 'subTaskReportChart', this.recordId); // event for sub tasks report
-        //fireEvent(this.pageRef, 'subTaskReportChart', this.recordId);
+        console.log('recordId: ' + this.recordId + ' userSubCompId: ' + this.userSubCompId);
+        //this.getCurrentTask(this.recordId);
     }
+
+    //     userProfile() {
+    //         getProfile().then(data => {
+    //                 console.log('Data Profile' + JSON.stringify(data));
+    //                 // this.profileName = data;
+    //                 // console.log('Profile Name' + JSON.stringify(this.profileName));
+    //                 // if (this.profileName === 'Lead') {
+    //                 // this.isLead = true;
+    //                 // this.recordData = sessionStorage.getItem('recordData');
+    //                 // let recordState = JSON.parse(this.recordData);
+
+    //                 // console.log('RecordData: state ' + recordState);
+    //                 // this.recordId = recordState.recordId;
+    //                 // this.userSubCompId = recordState.userSubCompId;
+    //                 // this.getCurrentTask(this.recordId);
+    //                 // } else {
+    //                 // this.isLead = false;
+    //                 // this.recordId = sessionStorage.getItem('rowId');
+    //                 // console.log('rowId: state ' + this.recordId);
+    //                 // this.getCurrentTask(this.recordId);
+    //             }
+
+    //         }).catch(error => {
+    //         console.log('Error ' + error.message);
+    //     });
+    // }
 
     getCurrentTask(recId) {
         getTask({ recordId: recId })
@@ -48,6 +78,11 @@ export default class ShowTaskDetail extends LightningElement {
                 this.state = data.State__c;
                 this.progress = data.Progress__c;
                 console.log('state:' + this.state + 'progress ' + this.progress);
+                if (this.state === 'Completed') {
+                    this.isDisabled = true;
+                } else {
+                    this.isDisabled = false;
+                }
             })
             .catch()
     }
@@ -71,9 +106,18 @@ export default class ShowTaskDetail extends LightningElement {
             new ShowToastEvent({
                 title: "Success",
                 message: "Epic Reassigned Successfully!",
-                variant: "Info"
+                variant: "Success"
             })
         );
+
+        const inputFields = this.template.querySelectorAll(
+            'lightning-input-field'
+        );
+        if (inputFields) {
+            inputFields.forEach(field => {
+                field.reset();
+            });
+        }
     }
 
     onOverdue() {
@@ -136,6 +180,7 @@ export default class ShowTaskDetail extends LightningElement {
                     })
                 );
                 this.draftValues = [];
+                this.handleUpdateTask();
             })
             .catch((error) => {
                 this.dispatchEvent(
@@ -146,8 +191,6 @@ export default class ShowTaskDetail extends LightningElement {
                     })
                 );
             });
-
-        this.handleUpdateTask();
     }
 
     closeModal() {
@@ -157,7 +200,12 @@ export default class ShowTaskDetail extends LightningElement {
 
     handleShowSubEpic() {
         console.log("handlesubshow" + JSON.stringify(this.recordData));
-        this.showEdit = false;
+        // this.showEdit = false;
+        // if (this.profileName === 'Lead') {
+        //     this.showSubEpicL = true;
+        // } else {
+        //     this.showSubEpicH = true;
+        // }
         this.showSubEpic = true;
     }
 
@@ -194,4 +242,8 @@ export default class ShowTaskDetail extends LightningElement {
     subListCloseHandler() {
         this.showSubEpic = false;
     }
+
+    // subListCloseHandlerH() {
+    //     this.showSubEpicH = false;
+    // }
 }

@@ -14,19 +14,20 @@ import { fireEvent, registerListener, unregisterAllListeners } from "c/pubsub";
 
 const actions = [
     { label: "View", name: "view" },
-    { label: "Edit", name: "edit" },
-    { label: "Delete", name: "delete" }
+    // { label: "Edit", name: "edit" },
+    // { label: "Delete", name: "delete" }
 ];
 
-export default class ShowSubTasksList extends NavigationMixin(LightningElement) {
+export default class SubTaskListHead extends NavigationMixin(LightningElement) {
     @api parentId;
-    //@api profileName;
+    @api profileName;
     //parentId;
     recordId;
-    showEditTask = false;
+    //showEditTask = false;
     showMessage = false;
     showSubTaskDetail = false;
     isLead;
+    progress
     @track subtaskList;
     refreshTable;
     error;
@@ -52,7 +53,6 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
         {
             label: "Progress",
             fieldName: "progress",
-            editable: true,
             initialWidth: 100
         },
         {
@@ -68,7 +68,7 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
         {
             label: "Assigned To",
             fieldName: "Assigned_To",
-            initialWidth: 120
+            initialWidth: 110
         },
         {
             type: "action",
@@ -163,8 +163,11 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
         registerListener("updateSubTask", this.handleCall, this);
         registerListener("subTaskAddedEvent", this.handleCall, this);
         registerListener("parentTaskDeleteEvent", this.handleCall, this);
-        fireEvent(this.pageRef, 'subTaskReportChart', this.parentId);
-        // console.log('Profile Name ' + this.profileName);
+        let forReportData = {};
+        forReportData.parentId = this.parentId;
+        forReportData.profileName = this.profileName
+        fireEvent(this.pageRef, 'subTaskReportChart', forReportData);
+        console.log('Profile Name ' + this.profileName);
 
     }
 
@@ -185,83 +188,78 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
         let actionName = event.detail.action.name;
         console.log("actionName ====> " + actionName);
         let row = event.detail.row;
+        console.log("ROW ====> " + JSON.stringify(row));
         this.recordId = event.detail.row.Id;
+        this.progress = event.detail.row.progress;
         console.log("Id " + this.recordId);
         switch (actionName) {
             case "view":
+                this.showSubTaskDetail = true;
                 console.log("Record Id from subtask " + this.recordId);
                 //this.showSubTaskDetail = true;
                 // fireEvent(this.pageRef, "passEventFromSubtaskList", this.recordId);
-                if (this.profileName === 'Lead') {
-                    this.isLead = true;
-                    this[NavigationMixin.Navigate]({
-                        type: 'comm__namedPage',
-                        attributes: {
-                            name: 'subTaskDetail__c'
-                        }
-                    });
-                    sessionStorage.setItem('subRecordData', this.recordId);
-                } else {
-                    this.isLead = false;
-                }
+                // if (this.profileName === 'Lead') {
+                //     this.isLead = true;
+                //     this[NavigationMixin.Navigate]({
+                //         type: 'comm__namedPage',
+                //         attributes: {
+                //             name: 'subTaskDetail__c'
+                //         }
+                //     });
+                //     sessionStorage.setItem('subRecordData', this.recordId);
+                // } else {
+                //     this.isLead = false;
+                // }
 
 
                 break;
-            case "edit":
-                this.showEditTask = true;
-                this.showSubTaskDetail = false;
-                console.log("Record Id from subtask " + this.recordId);
-                break;
-            case "delete":
-                this.deleteTask(row);
-                break;
+                // case "edit":
+                //     this.showEditTask = true;
+                //     this.showSubTaskDetail = false;
+                //     console.log("Record Id from subtask " + this.recordId);
+                //     break;
+                // case "delete":
+                //     this.deleteTask(row);
+                //     break;
 
             default:
         }
     }
 
-    deleteTask(currentRow) {
-        let currentRecord = [];
-        console.log("In delete task");
-        currentRecord = currentRow.Id;
-        console.log("currentRecord " + currentRecord);
-        delSelectedTask({ recordId: currentRow.Id })
-            .then((result) => {
-                this.dispatchEvent(
-                    new ShowToastEvent({
-                        title: "Success!!",
-                        message: "Record Deleted Successfully",
-                        variant: "success"
-                    })
-                );
-                fireEvent(this.pageRef, "deleteReportUpdate", 'update sub report');
-                return refreshApex(this.refreshTable);
-            })
-            .catch((error) => {
-                console.log("Error ====> " + error);
-                this.dispatchEvent(
-                    new ShowToastEvent({
-                        title: "Error!!",
-                        message: error.message,
-                        variant: "error"
-                    })
-                );
-            });
-    }
+    // deleteTask(currentRow) {
+    //     let currentRecord = [];
+    //     console.log("In delete task");
+    //     currentRecord = currentRow.Id;
+    //     console.log("currentRecord " + currentRecord);
+    //     delSelectedTask({ recordId: currentRow.Id })
+    //         .then((result) => {
+    //             this.dispatchEvent(
+    //                 new ShowToastEvent({
+    //                     title: "Success!!",
+    //                     message: "Record Deleted Successfully",
+    //                     variant: "success"
+    //                 })
+    //             );
+    //             fireEvent(this.pageRef, "deleteReportUpdate", 'update sub report');
+    //             return refreshApex(this.refreshTable);
+    //         })
+    //         .catch((error) => {
+    //             console.log("Error ====> " + error);
+    //             this.dispatchEvent(
+    //                 new ShowToastEvent({
+    //                     title: "Error!!",
+    //                     message: error.message,
+    //                     variant: "error"
+    //                 })
+    //             );
+    //         });
+    // }
 
-    handleCloseModal() {
-        this.showEditTask = false;
-    }
-
-    handleUpdateTask() {
-        this.showEditTask = false;
-        fireEvent(this.pageRef, "editReportUpdate", 'update sub report');
-        return refreshApex(this.refreshTable);
-    }
 
     handleCloseSubTask() {
         this.showSubTaskDetail = false;
     }
+
 
     handleSubListClose() {
         const customEvent = new CustomEvent('sublistclose');

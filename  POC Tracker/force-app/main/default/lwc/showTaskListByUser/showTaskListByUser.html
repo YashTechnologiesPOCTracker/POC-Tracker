@@ -19,8 +19,9 @@
     <div class="slds-m-around_medium">
         <template if:true={taskList}>
             <lightning-card title='Epic'>
+                <br/>
                 <lightning-datatable key-field="Id" data={taskList} columns={columns} hide-checkbox-column="true"
-                    onsave={handleSave} draft-values={draftValues} onrowaction={handleRowAction}>
+                    onsave={handleSave} draft-values={draftValues} onrowaction={handleRowAction} show-row-number-column="false">
                 </lightning-datatable>
             </lightning-card>
         </template>

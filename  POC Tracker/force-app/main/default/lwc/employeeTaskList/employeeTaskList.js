@@ -52,11 +52,13 @@ export default class EmployeeTaskList extends LightningElement {
         {
             label: "Progress",
             fieldName: "Progress",
-            editable: true
+            editable: true,
+            initialWidth: 100
         },
         {
             label: "Program",
             fieldName: "Program",
+            initialWidth: 120
 
         },
         // {
