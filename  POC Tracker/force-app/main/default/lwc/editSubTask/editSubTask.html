@@ -1,7 +1,4 @@
 <template>
-    <!-- <lightning-button variant="brand" label="Edit Task" title="Open Modal" onclick={openModal}
-            class="slds-m-left_x-small"></lightning-button> -->
-
     <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
         aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
         <div class="slds-modal__container">
@@ -31,7 +28,7 @@
                     </div>
                     <div class="slds-grid slds-wrap">
                         <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
-                            <lightning-output-field field-name="State__c"></lightning-output-field>
+                            <lightning-input-field field-name="State__c"></lightning-input-field>
                         </span>
                         <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
                             <lightning-input-field field-name="Assigned_To__c"></lightning-input-field>
@@ -46,18 +43,27 @@
                         </span>
                     </div>
                     <div class="slds-grid slds-wrap">
-                        <span class="slds-size_1-of-2 slds-max-small-size_1-of-1" if:false={hasSubTask}>
-                            <lightning-input-field field-name="Progress__c"></lightning-input-field>
-                        </span>
-                        <span class="slds-size_1-of-1 slds-max-small-size_1-of-1">
+                        <div class="slds-grid slds-wrap">
+                            <span class="slds-size_1-of-2 slds-max-small-size_1-of-1 ">
+                                <lightning-input-field field-name="Progress__c" type="number" min="0" max="100"
+                                    formatter="percent" onchange={progressOnChange}></lightning-input-field>
+                            </span>
+                            <!-- <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <div class="slds-progress-bar_circular">
+                                    <div class="slds-progress-bar__value_success">
+                                        <lightning-progress-bar value={progress} size="large"></lightning-progress-bar>
+                                    </div>
+                                </div>
+                            </span>  -->
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-wrap">
+                        <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
                             <lightning-input-field field-name="Description__c"></lightning-input-field>
                         </span>
-                    </div>
-
-                    <div class="slds-grid slds-wrap">
                         <span class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-hide">
-                            <lightning-input-field field-name="Parent_Task__c"></lightning-input-field>
-                        </span>
+                                <lightning-input-field field-name="Parent_Task__c"></lightning-input-field>
+                            </span>
                     </div>
                     <br />
 

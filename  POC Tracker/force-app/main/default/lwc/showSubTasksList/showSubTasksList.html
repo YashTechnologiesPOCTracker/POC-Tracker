@@ -10,6 +10,13 @@
                     onsave={handleSave} draft-values={draftValues} onrowaction={handleRowAction}
                     show-row-number-column="false">
                 </lightning-datatable>
+                <div class="slds-m-around_medium">
+                    <p class="slds-m-vertical_medium content">
+                        <b> Displaying {startingRecord} to {endingRecord} of {totalRecountCount} Epics ;
+                            Page {page} of {totalPage}</b>
+                    </p>
+                    <c-paginator onprevious={previousHandler} onnext={nextHandler}></c-paginator>
+                </div>
             </lightning-card>
         </template>
 </div>

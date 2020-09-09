@@ -15,34 +15,41 @@ export default class ShowReport extends LightningElement {
     profileName;
     @wire(CurrentPageReference) pageRef;
 
+    @wire(getProfile) getProfileData(result, error) {
+        if (result) {
+            console.log('result.data ' + JSON.stringify(result));
+            this.profileName = result.data;
+            this.getReportData();
+        } else if (error) {
+            console.log('Error ' + JSON.stringify(error.message));
+        }
+    }
+
     connectedCallback() {
         console.log("Connected Callback of ShowReport");
-        this.getProfileData();
 
         console.log('scID: ' + this.scId);
-        //registerListener("selectedSubIdForReport", this.handleCallback, this);
-        //registerListener("SCIdFormShowCompList", this.handleCallback, this);
         registerListener("updateReportChart", this.handle, this);
-
-        this.getReportData();
     }
 
-    getProfileData() {
-        getProfile()
-            .then(data => {
-                this.profileName = data;
-            })
-            .catch(error => {
-                console.log('Error ' + error.message);
-            })
-    }
 
-    handleCallback(detail) {
-        console.log('detail id ' + detail);
-        this.scId = detail;
-        console.log('SC id ' + this.scId);
-        this.getReportData();
-    }
+    // getProfileData() {
+    //     getProfile()
+    //         .then(data => {
+    //             this.profileName = data;
+    //             this.getReportData();
+    //         })
+    //         .catch(error => {
+    //             console.log('Error ' + error.message);
+    //         })
+    // }
+
+    // handleCallback(detail) {
+    //     console.log('detail id ' + detail);
+    //     this.scId = detail;
+    //     console.log('SC id ' + this.scId);
+    //     this.getReportData();
+    // }
 
     handle() {
         console.log('in handle');
@@ -62,6 +69,7 @@ export default class ShowReport extends LightningElement {
                 this.chart.data.labels = [];
                 this.chart.data.datasets.forEach((dataset) => {
                     dataset.data = [];
+                    dataset.backgroundColor = [];
                 });
 
                 if (!(Array.isArray(this.chart.data.labels) && this.chart.data.labels.length)) {
@@ -74,7 +82,7 @@ export default class ShowReport extends LightningElement {
 
             })
             .catch((err) => {
-                console.log("In report error " + err);
+                console.log("In report error " + JSON.stringify(err.message));
                 this.isDataAvailable = false;
             });
     }
@@ -87,33 +95,20 @@ export default class ShowReport extends LightningElement {
         data: {
             datasets: [{
                 data: [],
-                backgroundColor: [
-                    '#FF0000',
-                    '#0000FF',
-                    '#008000',
-                    '#800080',
-                    '#008080',
-                    '#000080',
-                    '#FF00FF',
-                    '#808080',
-                    '#800000',
-                    '#808000',
-                    'rgb(255,99,132)',
-                    'rgb(255,159,64)',
-                    'rgb(255,205,86)',
-                    '#FFFF00',
-                    '#00FFFF',
-                    'rgb(75,192,192)',
-
-                ],
-                label: 'Dataset 1'
+                backgroundColor: [],
+                label: 'Dataset 1',
             }],
             labels: []
         },
         options: {
+            cutoutPercentage: 65,
             responsive: true,
             legend: {
-                position: 'right'
+                position: 'right',
+                labels: {
+                    usePointStyle: true
+                },
+                // onHover: this.hoverFunction
             },
             animation: {
                 animateScale: true,
@@ -121,6 +116,10 @@ export default class ShowReport extends LightningElement {
             }
         }
     };
+
+    // hoverFunction() {
+    //     console.log('Hover called');
+    // }
 
     renderedCallback() {
         console.log('in render chart');
@@ -151,6 +150,21 @@ export default class ShowReport extends LightningElement {
         //console.log('Update chart label ' + label);
         this.chart.data.datasets.forEach((dataset) => {
             dataset.data.push(count);
+            if (label === 'Accelerator') {
+                dataset.backgroundColor.push('#003f5c');
+            } else if (label === 'Delivery Support') {
+                dataset.backgroundColor.push('#2f4b7c');
+            } else if (label === 'Hiring') {
+                dataset.backgroundColor.push('#665191');
+            } else if (label === 'Lab') {
+                dataset.backgroundColor.push('#a05195');
+            } else if (label === 'ServiceLine Support') {
+                dataset.backgroundColor.push('#d45087');
+            } else if (label === 'Training') {
+                dataset.backgroundColor.push('#f95d6a');
+            } else {
+                dataset.backgroundColor.push('#ff7c43');
+            }
         });
         // console.log('Update chart DATA ' + count);
         this.chart.update();

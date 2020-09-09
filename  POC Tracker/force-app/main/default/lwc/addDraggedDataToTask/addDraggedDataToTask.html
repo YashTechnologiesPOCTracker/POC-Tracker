@@ -5,11 +5,18 @@
                 <div slot="actions">
                     <lightning-button label="Close" onclick={handleSubListClose}></lightning-button>
                 </div>
-                <lightning-datatable key-field="Id" data={subtaskList} columns={columns} hide-checkbox-column="true"
-                    onsave={handleSave} draft-values={draftValues} onrowaction={handleRowAction}
+                <lightning-datatable 
+                    key-field="Id" 
+                    data={subtaskList} 
+                    columns={columns} 
+                    hide-checkbox-column="true"
+                    onsave={handleSave} 
+                    draft-values={draftValues} 
+                    onrowaction={handleRowAction}
                     show-row-number-column="false">
                 </lightning-datatable>
             </lightning-card>
         </div>
+
     </lightning-card>
 </template>

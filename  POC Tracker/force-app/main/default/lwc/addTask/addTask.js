@@ -8,28 +8,30 @@ import { CurrentPageReference } from "lightning/navigation";
 
 export default class AddTask extends LightningElement {
 
-    bShowModal = false;
+    // bShowModal = false;
     currentUserId = userId;
     @api competencyId;
     @api subcompId;
     @wire(CurrentPageReference) pageRef;
 
-    openModal() {
-        this.bShowModal = true;
-    }
+    // openModal() {
+    //     this.bShowModal = true;
+    // }
 
     closeModal() {
-        const inputFields = this.template.querySelectorAll(
-            'lightning-input-field'
-        );
-        if (inputFields) {
-            inputFields.forEach(field => {
-                field.reset();
-            });
-        }
-        this.bShowModal = false;
-        return refreshApex(this.createTask());
-
+        // const inputFields = this.template.querySelectorAll(
+        //     'lightning-input-field'
+        // );
+        // if (inputFields) {
+        //     inputFields.forEach(field => {
+        //         field.reset();
+        //     });
+        // }
+        // this.bShowModal = false;
+        // return refreshApex(this.createTask());
+        console.log('In Add task before close');
+        const customEvent = new CustomEvent("closemodal");
+        this.dispatchEvent(customEvent);
     }
 
 
@@ -57,7 +59,7 @@ export default class AddTask extends LightningElement {
             });
         }
 
-        this.bShowModal = false;
+        //this.bShowModal = false;
 
         console.log('In Add task before event');
         const customEvent = new CustomEvent("addevent");

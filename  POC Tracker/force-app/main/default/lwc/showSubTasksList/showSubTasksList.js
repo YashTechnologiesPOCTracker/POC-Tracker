@@ -30,8 +30,22 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
     @track subtaskList;
     refreshTable;
     error;
+    aggregateProgress
+    Completed;
+    NotCompleted;
     @track draftValues = [];
     @wire(CurrentPageReference) pageRef;
+    @api subName;
+    @api compName;
+
+    page = 1;
+    items = [];
+    startingRecord = 1;
+    endingRecord = 0;
+    pageSize = 5;
+    totalRecountCount = 0;
+    totalPage = 0;
+
     @track columns = [
         // {
         //     label: "ID",
@@ -76,8 +90,19 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
         }
     ];
 
+    connectedCallback() {
+        registerListener("updateSubTask", this.handleCall, this);
+        registerListener("subTaskAddedEvent", this.handleCall, this);
+        registerListener("parentTaskDeleteEvent", this.handleCall, this);
+        fireEvent(this.pageRef, 'subTaskReportChart', this.parentId);
+        // console.log('Profile Name ' + this.profileName);
+
+    }
+
     @wire(subtasks, { parentId: "$parentId" }) getSubTaskList(result) {
         this.refreshTable = result;
+        this.Completed = 0;
+        this.NotCompleted = 0;
         if (result.data) {
             let newData;
             newData = result.data;
@@ -96,6 +121,15 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
                 if (element.Assigned_To__r.Name) {
                     newObject.Assigned_To = element.Assigned_To__r.Name;
                 }
+
+                if (element.Progress__c === 100) {
+                    this.Completed++;
+                    console.log('Completed ' + this.Completed);
+                } else if (element.Progress__c != 100) {
+                    this.NotCompleted++;
+                    console.log('NotCompleted ' + this.NotCompleted);
+                }
+
                 newArray.push(newObject);
             });
             console.log("Parent Id: " + this.parentId);
@@ -103,7 +137,15 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
                 this.subtaskList = newArray;
                 this.showMessage = false;
                 //  console.log('subtaskList ' + this.subtaskList);
+                this.items = newArray;
+                this.totalRecountCount = newArray.length;
+                this.totalPage = Math.ceil(this.totalRecountCount / this.pageSize); //here it is 5
+                this.subtaskList = this.items.slice(0, this.pageSize);
+                this.endingRecord = this.pageSize;
+
+                this.updateProgress();
             }
+
             //else if ((this.parentId) && !(Array.isArray(newArray) && newArray.length)) {
 
             //     this.message = 'Could Not find any Sub-Task Under this Task';
@@ -131,8 +173,6 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
         fields[TITLE_FIELD.fieldApiName] = event.detail.draftValues[0].Title;
         // fields[PROGRAM_FIELD.fieldApiName] = event.detail.draftValues[0].Program;
         fields[PROGRESS_FIELD.fieldApiName] = event.detail.draftValues[0].progress;
-        // fields[ASSIGNED_TO_FIELD.fieldApiName] =
-        //     event.detail.draftValues[0].Assigned_To;
 
         const recordInput = { fields };
         updateRecord(recordInput)
@@ -159,14 +199,6 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
             });
     }
 
-    connectedCallback() {
-        registerListener("updateSubTask", this.handleCall, this);
-        registerListener("subTaskAddedEvent", this.handleCall, this);
-        registerListener("parentTaskDeleteEvent", this.handleCall, this);
-        fireEvent(this.pageRef, 'subTaskReportChart', this.parentId);
-        // console.log('Profile Name ' + this.profileName);
-
-    }
 
     // handleCallback(detail) {
     //     console.log('details in sub task ' + detail);
@@ -186,24 +218,31 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
         console.log("actionName ====> " + actionName);
         let row = event.detail.row;
         this.recordId = event.detail.row.Id;
+
+        let recordDetails = {};
+        recordDetails.recordId = this.recordId;
+        recordDetails.subName = this.subName;
+        recordDetails.compName = this.compName;
+        recordDetails.title = this.title;
+
         console.log("Id " + this.recordId);
         switch (actionName) {
             case "view":
                 console.log("Record Id from subtask " + this.recordId);
                 //this.showSubTaskDetail = true;
                 // fireEvent(this.pageRef, "passEventFromSubtaskList", this.recordId);
-                if (this.profileName === 'Lead') {
-                    this.isLead = true;
-                    this[NavigationMixin.Navigate]({
-                        type: 'comm__namedPage',
-                        attributes: {
-                            name: 'subTaskDetail__c'
-                        }
-                    });
-                    sessionStorage.setItem('subRecordData', this.recordId);
-                } else {
-                    this.isLead = false;
-                }
+                // if (this.profileName === 'Lead') {
+                this.isLead = true;
+                this[NavigationMixin.Navigate]({
+                    type: 'comm__namedPage',
+                    attributes: {
+                        name: 'subTaskDetail__c'
+                    }
+                });
+                sessionStorage.setItem('subRecordData', JSON.stringify(recordDetails));
+                // } else {
+                //     this.isLead = false;
+                // }
 
 
                 break;
@@ -235,6 +274,7 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
                     })
                 );
                 fireEvent(this.pageRef, "deleteReportUpdate", 'update sub report');
+                fireEvent(this.pageRef, "deleteSubUpdate", 'update detail');
                 return refreshApex(this.refreshTable);
             })
             .catch((error) => {
@@ -249,6 +289,54 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
             });
     }
 
+    updateProgress() {
+        const fields = {};
+
+        let p = (this.Completed / (this.Completed + this.NotCompleted)) * 100;
+        this.aggregateProgress = p.toFixed(2)
+        console.log('P ' + p);
+        console.log('Progress:%%%%%% ' + this.aggregateProgress);
+
+        fields[ID_FIELD.fieldApiName] = this.parentId;
+        fields[PROGRESS_FIELD.fieldApiName] = this.aggregateProgress;
+
+        const recordInput = { fields };
+        updateRecord(recordInput)
+            .then(() => {
+                const custEvent = new CustomEvent('progressupdated');
+                this.dispatchEvent(custEvent)
+                    // fireEvent(this.pageRef, "editReportUpdate", 'update sub report');
+                    // this.draftValues = [];
+                    // return refreshApex(this.refreshTable);
+            })
+            .catch((error) => {});
+
+    }
+
+    previousHandler() {
+        if (this.page > 1) {
+            this.page = this.page - 1;
+            this.displayRecordPerPage(this.page);
+        }
+    }
+
+    nextHandler() {
+        if ((this.page < this.totalPage) && this.page !== this.totalPage) {
+            this.page = this.page + 1;
+            this.displayRecordPerPage(this.page);
+        }
+    }
+
+    displayRecordPerPage(page) {
+        this.startingRecord = ((page - 1) * this.pageSize);
+        this.endingRecord = (this.pageSize * page);
+        this.endingRecord = (this.endingRecord > this.totalRecountCount) ?
+            this.totalRecountCount : this.endingRecord;
+
+        this.subtaskList = this.items.slice(this.startingRecord, this.endingRecord);
+        this.startingRecord = this.startingRecord + 1;
+    }
+
     handleCloseModal() {
         this.showEditTask = false;
     }
@@ -256,6 +344,7 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
     handleUpdateTask() {
         this.showEditTask = false;
         fireEvent(this.pageRef, "editReportUpdate", 'update sub report');
+        fireEvent(this.pageRef, "editSubUpdate", 'update sub detail');
         return refreshApex(this.refreshTable);
     }
 

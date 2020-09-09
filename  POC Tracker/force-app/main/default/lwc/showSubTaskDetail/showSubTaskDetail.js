@@ -1,5 +1,5 @@
 import { LightningElement, wire, api } from 'lwc';
-import { CurrentPageReference } from 'lightning/navigation';
+import { CurrentPageReference, NavigationMixin } from 'lightning/navigation';
 import getTask from '@salesforce/apex/taskController.getCurrentTask';
 import { fireEvent } from 'c/pubsub';
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
@@ -9,7 +9,7 @@ import STATE_FIELD from "@salesforce/schema/Tracker__c.State__c";
 import PROGRESS_FIELD from "@salesforce/schema/Tracker__c.Progress__c";
 import IS_OVERDUE_FIELD from "@salesforce/schema/Tracker__c.isOverdue__c";
 
-export default class ShowSubTaskDetail extends LightningElement {
+export default class ShowSubTaskDetail extends NavigationMixin(LightningElement) {
 
     @wire(CurrentPageReference) pageRef;
     //@api recordId;
@@ -22,10 +22,21 @@ export default class ShowSubTaskDetail extends LightningElement {
     isDisabledClose = false;
     state;
     progress;
+    title;
+    subName;
+    compName;
+    epic;
 
     connectedCallback() {
-        this.recordId = sessionStorage.getItem('subRecordData');
+        let data = sessionStorage.getItem('subRecordData');
+        let recordData = JSON.parse(data);
+        this.recordId = recordData.recordId;
+        this.subName = recordData.subName;
+        this.compName = recordData.compName;
+        this.epic = recordData.title;
         console.log('Sub task detail record Id ' + this.recordId);
+        console.log('Sub name ' + this.subName);
+        console.log('comp name ' + this.compName);
         this.getCurrentTask(this.recordId);
     }
 
@@ -33,6 +44,7 @@ export default class ShowSubTaskDetail extends LightningElement {
         getTask({ recordId: recId })
             .then(data => {
                 console.log('Data getTask ' + JSON.stringify(data));
+                this.title = data.Title__c;
                 this.state = data.State__c;
                 this.progress = data.Progress__c;
                 console.log('state:' + this.state + 'progress ' + this.progress);
@@ -165,4 +177,14 @@ export default class ShowSubTaskDetail extends LightningElement {
     //     const customEvent = new CustomEvent('closesubtaskdetail');
     //     this.dispatchEvent(customEvent);
     // }
+
+    handleSubEpicBack() {
+        this[NavigationMixin.Navigate]({
+            type: 'comm__namedPage',
+            attributes: {
+                name: 'taskDetail__c'
+            }
+        });
+        console.log('Back Clicked')
+    }
 }

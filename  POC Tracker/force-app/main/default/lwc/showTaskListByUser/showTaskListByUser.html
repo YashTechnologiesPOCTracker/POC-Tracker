@@ -13,35 +13,62 @@
             </lightning-layout-item>
         </lightning-layout>
     </div>
+    <lightning-card icon-name="action:record" title="Active Epics">
+        <!-- <lightning-input
+            class="searchbar"
+            label="Search"
+            value={keyword}
+            onchange={handleKeywordChange}>
+        </lightning-input> -->
 
-    <c-add-task subcomp-id={subcompId} competency-id={competencyId} onaddevent={handleAddTask}></c-add-task>
-
-    <div class="slds-m-around_medium">
+        <div slot="actions">
+            <lightning-button label="Create Epic" title="Open Modal" onclick={addEpic} class="slds-m-left_x-small">
+            </lightning-button>
+        </div>
         <template if:true={taskList}>
-            <lightning-card title='Epic'>
-                <br/>
-                <lightning-datatable key-field="Id" data={taskList} columns={columns} hide-checkbox-column="true"
-                    onsave={handleSave} draft-values={draftValues} onrowaction={handleRowAction} show-row-number-column="false">
-                </lightning-datatable>
-            </lightning-card>
+            <!-- <lightning-layout multiple-rows="true" vertical-align="end">
+                <lightning-layout-item size="12" small-device-size="8" medium-device-size="" large-device-size="4"
+                    padding="around-small">
+                    <div class="slds-form-element">
+                        <div class="slds-form-element__control">
+                            <lightning-input type="text" placeholder="Search" onchange={handleValue}></lightning-input>
+                        </div>
+                    </div>
+                </lightning-layout-item>
+                <lightning-layout-item size="12" small-device-size="2" medium-device-size="2" large-device-size="2"
+                    padding="around-small">
+                    <lightning-button icon-name="standard:search"  onclick={handleSearch}></lightning-button>
+                </lightning-layout-item>
+            </lightning-layout><br /> -->
+
+            <lightning-datatable key-field="Id" data={taskList} columns={columns} hide-checkbox-column="true"
+                onsave={handleSave} draft-values={draftValues} onrowaction={handleRowAction}
+                show-row-number-column="false">
+            </lightning-datatable>
+
+            <div class="slds-m-around_medium">
+                <p class="slds-m-vertical_medium content">
+                    <b> Displaying {startingRecord} to {endingRecord} of {totalRecountCount} Epics ;
+                        Page {page} of {totalPage}</b>
+                </p>
+                <c-paginator onprevious={previousHandler} onnext={nextHandler}></c-paginator>
+            </div>
         </template>
+</lightning-card>
 <template if:true={showMessage}>
-            <lightning-card title={message}>
-            </lightning-card>
-        </template>
-<template if:true={error}>
-            {error}
-        </template>
-</div>
-<!-- <div class="slds-m-around_medium">
-    <template if:true={taskList}>
-            <lightning-card title="Opportunity Bar Chart" icon-name="utility:chart">
-                <template if:true={chartConfiguration}>
-                    <c-chart chart-config={chartConfiguration}></c-chart>
-                </template>
-    </lightning-card>
+        <lightning-card title={message}>
+        </lightning-card>
     </template>
-</div> -->
+<template if:true={error}>
+        {error}
+    </template>
+
+<template if:true={isAddEpic}>
+        <c-add-task subcomp-id={subcompId} competency-id={competencyId} onaddevent={handleAddTask}
+            onclosemodal={handleCloseTask}>
+        </c-add-task>
+    </template>
+
 <div class="slds-m-around_medium">
     <template if:true={showEditTask}>
             <c-edit-task record-id={recordId} onclosemodalevent={handleCloseModal} onupdateevent={handleUpdateTask}>

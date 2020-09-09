@@ -1,15 +1,16 @@
-import { LightningElement, track, api, wire } from "lwc";
+import { LightningElement, api } from 'lwc';
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 
-export default class EditTask extends LightningElement {
+
+export default class EditSubTask extends LightningElement {
     @api recordId;
-    @api hasSubTask;
+    progress;
 
-
-    connectedCallback() {
-        console.log("recordId " + this.recordId);
-        console.log("hasSubTask " + this.hasSubTask);
+    progressOnChange(event) {
+        this.progress = event.target.value;
+        //this.userEnteredProgressValue = event.target.value;
     }
+
     closeModal() {
         const customEvent = new CustomEvent("closemodalevent");
         this.dispatchEvent(customEvent);
@@ -34,5 +35,4 @@ export default class EditTask extends LightningElement {
         const customEvent = new CustomEvent("updateevent");
         this.dispatchEvent(customEvent);
     }
-
 }

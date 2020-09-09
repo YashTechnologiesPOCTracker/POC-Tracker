@@ -62,6 +62,7 @@ export default class ShowSubTaskReport extends LightningElement {
                 this.chart.data.labels = [];
                 this.chart.data.datasets.forEach((dataset) => {
                     dataset.data = [];
+                    dataset.backgroundColor = [];
                 });
 
                 if (!(Array.isArray(this.chart.data.labels) && this.chart.data.labels.length)) {
@@ -88,33 +89,19 @@ export default class ShowSubTaskReport extends LightningElement {
         data: {
             datasets: [{
                 data: [],
-                backgroundColor: [
-                    '#072F5F',
-                    '#557CFF',
-                    '#229389',
-                    '#57C3AD',
-                    '#FF0000',
-                    '#0000FF',
-                    '#008000',
-                    '#800080',
-                    '#008080',
-                    '#000080',
-                    'rgb(255,99,132)',
-                    'rgb(255,159,64)',
-                    'rgb(255,205,86)',
-                    '#FFFF00',
-                    '#00FFFF',
-                    'rgb(75,192,192)',
-
-                ],
+                backgroundColor: [],
                 label: 'Dataset 1'
             }],
             labels: []
         },
         options: {
+            cutoutPercentage: 65,
             responsive: true,
             legend: {
-                position: 'right'
+                position: 'right',
+                labels: {
+                    usePointStyle: true
+                }
             },
             animation: {
                 animateScale: true,
@@ -152,6 +139,21 @@ export default class ShowSubTaskReport extends LightningElement {
         //console.log('Update chart label ' + label);
         this.chart.data.datasets.forEach((dataset) => {
             dataset.data.push(count);
+            if (label === 'Accelerator') {
+                dataset.backgroundColor.push('#003f5c');
+            } else if (label === 'Delivery Support') {
+                dataset.backgroundColor.push('#2f4b7c');
+            } else if (label === 'Hiring') {
+                dataset.backgroundColor.push('#665191');
+            } else if (label === 'Lab') {
+                dataset.backgroundColor.push('#a05195');
+            } else if (label === 'ServiceLine Support') {
+                dataset.backgroundColor.push('#d45087');
+            } else if (label === 'Training') {
+                dataset.backgroundColor.push('#f95d6a');
+            } else {
+                dataset.backgroundColor.push('#ff7c43');
+            }
         });
         // console.log('Update chart DATA ' + count);
         this.chart.update();

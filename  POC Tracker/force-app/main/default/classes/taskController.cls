@@ -58,10 +58,29 @@ public without sharing class taskController {
     @AuraEnabled(cacheable=true)
     public static List<Tracker__c> getTasksByUser(String currentUserId, String subcompId) {
         system.debug('userId ' + currentUserId);
-        List<Tracker__c> listTrackerByUser =  [SELECT Id, Name, Title__c, Program__c,Start_Date__c, Target_Date__c, 
-                Assigned_To__r.Name, Progress__c, State__c FROM Tracker__c Where (OwnerId=: currentUserId AND Parent_Task__c = null AND Subsidiary_CompetencyId__c=:subcompId)];
-        system.debug('list -' + listTrackerByUser);
-        return listTrackerByUser;
+            List<Tracker__c> listTrackerByUser =  [SELECT Id, Name, Title__c, Program__c,Start_Date__c, Target_Date__c, 
+            Assigned_To__r.Name, Progress__c, State__c FROM Tracker__c Where (OwnerId=: currentUserId AND Parent_Task__c = null AND Subsidiary_CompetencyId__c=:subcompId)];
+            system.debug('list -' + listTrackerByUser);
+            return listTrackerByUser;
+        
+    }
+
+    @AuraEnabled
+    public static List<SObject> searchEpic(String search) {
+        //system.debug('userId ' + currentUserId);
+        List<List<SObject>> results = [FIND :search IN ALL FIELDS  RETURNING Tracker__c(Id, Name, Title__c, Program__c,Start_Date__c, Target_Date__c, 
+        Assigned_To__r.Name, Progress__c, State__c)];
+
+        List<SObject> epic = new List<SObject>();
+        system.debug('results ' + results);
+        for (List<SObject> sobjs : results) {
+            system.debug('sobjs ' + sobjs);
+            for (SObject sobj : sobjs) {
+                epic.add(sobj);
+            }
+        }
+        system.debug('epics ' + epic);
+        return epic;
     }
 
     @AuraEnabled(cacheable=true)

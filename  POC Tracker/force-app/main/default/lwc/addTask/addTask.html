@@ -1,11 +1,13 @@
 <template>
-    <div class="slds-size--2-of-8 slds-p-around--large">
-        <!-- <lightning-card> -->
-        <lightning-button label="Create Epic" title="Open Modal" onclick={openModal} class="slds-m-left_x-small">
-        </lightning-button>
-        <!-- </lightning-card> -->
-    </div>
-    <template if:true={bShowModal}>
+    <!-- <div class="slds-size--2-of-8 slds-p-around--large">
+        <lightning-card>
+            <div class="slds-float_right">
+                <lightning-button label="Create Epic" title="Open Modal" onclick={openModal}
+                    class="slds-m-left_x-small"></lightning-button>
+            </div>
+        </lightning-card> 
+    </div> -->
+    <!-- <template if:true={bShowModal}> -->
         <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
             aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
             <div class="slds-modal__container"> -->
@@ -74,5 +76,5 @@
             </div>
         </section>
         <div class="slds-backdrop slds-backdrop_open"></div>
-    </template>
+    <!-- </template> -->
 </template>

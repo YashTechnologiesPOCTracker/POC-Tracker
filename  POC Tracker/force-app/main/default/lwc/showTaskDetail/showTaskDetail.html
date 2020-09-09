@@ -1,4 +1,19 @@
 <template>
+    <div class="slds-page-header slds-page-header--object-home">
+        <!-- <div class="slds-float_right">
+            <lightning-button label="Back" title="Non-primary action" onclick={handleEpicBack}
+                class="slds-m-left_x-small"></lightning-button>
+        </div> -->
+        <lightning-layout>
+            <lightning-layout-item class="slds-m-left--small">
+                <h1 class="slds-page-header__title slds-p-right--x-small">{subName} -> {compName} ->
+                    {title}</h1>
+            </lightning-layout-item>
+            <lightning-layout-item>
+            </lightning-layout-item>
+        </lightning-layout>
+    </div>
+
     <lightning-card icon-name="action:record" title="Epic Detail">
         <!-- <template if:true={isLead}> -->
         <div slot="actions">
@@ -74,22 +89,22 @@
         </div>
         <div class="slds-grid slds-wrap">
             <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
-                    <lightning-output-field field-name="Progress__c"></lightning-output-field>
-                </span>
+                <lightning-output-field field-name="Progress__c"></lightning-output-field>
+            </span>
             <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
-                    <lightning-output-field field-name="Description__c"></lightning-output-field>
-                </span>
+                <lightning-output-field field-name="Description__c"></lightning-output-field>
+            </span>
         </div>
         <div class="slds-grid slds-wrap">
-            <span class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-hide">
+            <!-- <span class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-hide">
                     <lightning-output-field field-name="Progress__c"></lightning-output-field>
-                </span>
+                </span> -->
             <span class="slds-size_1-of-2 slds-max-small-size_1-of-1 ">
                     <div class="">
-                        <lightning-progress-bar class="slds-progress-bar__value_success slds-progress-bar_circular"
-                            value={progress} size="large"></lightning-progress-bar>
-                    </div>
-                </span>
+            <lightning-progress-bar class="slds-progress-bar__value_success slds-progress-bar_circular" 
+            value={progress} size="large"></lightning-progress-bar>
+        </div>
+        </span>
         </div>
     </lightning-record-view-form>
     <br />
@@ -97,7 +112,11 @@
 <br />
 <template if:true={showSubEpic}>
         <lightning-card>
-            <c-show-sub-tasks-list parent-id={recordId} onsublistclose={subListCloseHandler}></c-show-sub-tasks-list>
+            <c-show-sub-tasks-list parent-id={recordId} 
+            sub-name={subName} comp-name={compName}
+            onprogressupdated={handleSubUpdate}
+            title={title}
+            onsublistclose={subListCloseHandler}></c-show-sub-tasks-list>
         </lightning-card>
     </template>
 
@@ -109,12 +128,12 @@
     </template> -->
 
 <template if:true={showEdit}>
-        <c-edit-task record-id={recordId} onclosemodalevent={handleCloseModal} onupdateevent={handleUpdateTask}>
+        <c-edit-task record-id={recordId} has-sub-task={hasSubTasks} onclosemodalevent={handleCloseModal} onupdateevent={handleUpdateTask}>
         </c-edit-task>
     </template>
 
 <template if:true={addSubEpic}>
-        <c-create-sub-tasks parent-task-record-id={recordId} user-sub-comp-id={userSubCompId}
+        <c-create-sub-tasks parent-task-record-id={recordId} user-sub-comp-id={userSubCompId} 
             onaddeventsuccess={handleAdd} oncancelevent={handleCancel}>
         </c-create-sub-tasks>
     </template>

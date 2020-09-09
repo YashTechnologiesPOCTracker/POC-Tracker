@@ -1,6 +1,6 @@
 import { LightningElement, api, wire, track } from "lwc";
 import { CurrentPageReference } from "lightning/navigation";
-import { fireEvent } from 'c/pubsub';
+import { fireEvent, registerListener, unregisterAllListeners } from 'c/pubsub';
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import { updateRecord } from "lightning/uiRecordApi";
 import ID_FIELD from "@salesforce/schema/Tracker__c.Id";
@@ -8,6 +8,7 @@ import STATE_FIELD from "@salesforce/schema/Tracker__c.State__c";
 import PROGRESS_FIELD from "@salesforce/schema/Tracker__c.Progress__c";
 import IS_OVERDUE_FIELD from "@salesforce/schema/Tracker__c.isOverdue__c";
 import getTask from '@salesforce/apex/taskController.getCurrentTask';
+import subtasks from "@salesforce/apex/taskController.listSubTask";
 import getProfile from '@salesforce/apex/taskController.getUserProfile';
 
 export default class ShowTaskDetail extends LightningElement {
@@ -20,64 +21,48 @@ export default class ShowTaskDetail extends LightningElement {
     showTask = false;
     showEdit = false;
     showSubEpic = false;
-    showSubEpicH = false;
     addSubEpic = false;
     showReassigForm = false;
     isDisabled = false;
     isLead;
+    title;
     state;
     progress;
+    hasSubTasks = false;
     refreshData;
+    Completed;
+    NotCompleted;
+    subName;
+    compName;
 
     connectedCallback() {
         //this.userProfile();
         //console.log('Profile Name' + JSON.stringify(this.profileName));
-        //this.competencyId = recordState.competencyId;
-        //this.state = recordState.state;
+
         this.recordData = sessionStorage.getItem('recordData');
         let recordState = JSON.parse(this.recordData);
 
         console.log('RecordData: state ' + recordState);
         this.recordId = recordState.recordId;
         this.userSubCompId = recordState.userSubCompId;
+        this.subName = recordState.subName;
+        this.compName = recordState.compName;
         this.getCurrentTask(this.recordId);
         console.log('recordId: ' + this.recordId + ' userSubCompId: ' + this.userSubCompId);
-        //this.getCurrentTask(this.recordId);
+        // this.getSubTask(this.recordId);
     }
 
-    //     userProfile() {
-    //         getProfile().then(data => {
-    //                 console.log('Data Profile' + JSON.stringify(data));
-    //                 // this.profileName = data;
-    //                 // console.log('Profile Name' + JSON.stringify(this.profileName));
-    //                 // if (this.profileName === 'Lead') {
-    //                 // this.isLead = true;
-    //                 // this.recordData = sessionStorage.getItem('recordData');
-    //                 // let recordState = JSON.parse(this.recordData);
 
-    //                 // console.log('RecordData: state ' + recordState);
-    //                 // this.recordId = recordState.recordId;
-    //                 // this.userSubCompId = recordState.userSubCompId;
-    //                 // this.getCurrentTask(this.recordId);
-    //                 // } else {
-    //                 // this.isLead = false;
-    //                 // this.recordId = sessionStorage.getItem('rowId');
-    //                 // console.log('rowId: state ' + this.recordId);
-    //                 // this.getCurrentTask(this.recordId);
-    //             }
-
-    //         }).catch(error => {
-    //         console.log('Error ' + error.message);
-    //     });
-    // }
 
     getCurrentTask(recId) {
         getTask({ recordId: recId })
             .then(data => {
                 console.log('Data getTask ' + JSON.stringify(data));
+                this.title = data.Title__c;
                 this.state = data.State__c;
                 this.progress = data.Progress__c;
-                console.log('state:' + this.state + 'progress ' + this.progress);
+
+                this.getSubTask(this.recordId);
                 if (this.state === 'Completed') {
                     this.isDisabled = true;
                 } else {
@@ -85,6 +70,22 @@ export default class ShowTaskDetail extends LightningElement {
                 }
             })
             .catch()
+    }
+
+    getSubTask(recId) {
+        subtasks({ parentId: recId })
+            .then(data => {
+                if (Array.isArray(data) && data.length) {
+                    console.log('Non-Empty Sub Task')
+                    this.hasSubTasks = true;
+                } else {
+                    this.hasSubTasks = false;
+                    console.log('Empty Sub Task')
+                }
+            })
+            .catch(error => {
+                console.log('Error ' + error.message);
+            });
     }
 
     handleSelect(event) {
@@ -162,9 +163,26 @@ export default class ShowTaskDetail extends LightningElement {
     }
 
     onClose() {
+        console.log('this.hasSubTasks ' + this.hasSubTasks)
+        if (!(this.hasSubTasks)) {
+            this.closeRecordViaUpdate();
+        } else if (this.hasSubTasks && this.progress === 100) {
+            this.closeRecordViaUpdate();
+        } else {
+            this.dispatchEvent(
+                new ShowToastEvent({
+                    title: "Error",
+                    message: 'Cannot Close Epic untill all Sub Epics are Completed !',
+                    variant: "error"
+                })
+            );
+        }
+    }
+
+    closeRecordViaUpdate() {
         const fields = {};
-        console.log("Field close " + JSON.stringify(fields));
-        console.log("Field close " + this.recordId);
+        // console.log("Field close " + JSON.stringify(fields));
+        // console.log("Field close " + this.recordId);
         fields[ID_FIELD.fieldApiName] = this.recordId;
         fields[STATE_FIELD.fieldApiName] = "Completed";
         fields[PROGRESS_FIELD.fieldApiName] = 100;
@@ -185,7 +203,7 @@ export default class ShowTaskDetail extends LightningElement {
             .catch((error) => {
                 this.dispatchEvent(
                     new ShowToastEvent({
-                        title: "Error creating record",
+                        title: "Epic cannot be closed",
                         message: error.body.message,
                         variant: "error"
                     })
@@ -193,11 +211,24 @@ export default class ShowTaskDetail extends LightningElement {
             });
     }
 
+    handleEpicBack() {
+        // this[NavigationMixin.Navigate]({
+        //     type: 'comm__namedPage',
+        //     attributes: {
+        //         name: 'taskDetail__c'
+        //     }
+        // });
+        console.log('Back Clicked')
+    }
+
     closeModal() {
         this.showTask = false;
         this.showReassigForm = false;
     }
 
+    handleSubUpdate() {
+        this.getCurrentTask(this.recordId);
+    }
     handleShowSubEpic() {
         console.log("handlesubshow" + JSON.stringify(this.recordData));
         // this.showEdit = false;
@@ -236,6 +267,7 @@ export default class ShowTaskDetail extends LightningElement {
     handleAdd() {
         console.log("Saved Success");
         fireEvent(this.pageRef, "subTaskAddedEvent", "Refresh Apex");
+        // this.getSubTaskForProgress()
         this.addSubEpic = false;
     }
 

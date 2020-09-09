@@ -62,24 +62,22 @@
     </section>
     <div class="slds-backdrop slds-backdrop_open"></div>
 -->
+<div class="slds-page-header slds-page-header--object-home">
+    <div class="slds-float_right">
+        <lightning-button label="Back" title="Non-primary action" onclick={handleSubEpicBack}
+            class="slds-m-left_x-small"></lightning-button>
+    </div>
+    <lightning-layout>
+        <lightning-layout-item class="slds-m-left--small">
+            <h1 class="slds-page-header__title slds-p-right--x-small">{subName} -> {compName} ->
+                {epic} -> {title}</h1>
+        </lightning-layout-item>
+        <lightning-layout-item>
+        </lightning-layout-item>
+    </lightning-layout>
+</div>
 
     <lightning-card icon-name="action:record" title="Sub Epic Detail">
-       <!-- <div class="slds-builder-header_container">
-        <header class="slds-builder-header">
-            <div class="slds-builder-header__utilities-item">
-                <a href="javascript:void(0);" class="slds-builder-header__item-action slds-media slds-media_center">
-                    <div class="slds-media__figure">
-                        <span class="slds-icon_container slds-icon-utility-back slds-current-color">
-                            <svg class="slds-icon slds-icon_x-small" aria-hidden="true">
-                                <use xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#back"></use>
-                            </svg>
-                        </span>
-                    </div>
-                    <div class="slds-media__body">Back</div>
-                </a>
-            </div>
-        </header>
-        </div> -->
         <div slot="actions">
             <lightning-button class="slds-button slds-button_left" label='Edit' onclick={handleEdit}></lightning-button>
             <lightning-button class="slds-button slds-button_middle" label='Reassign' onclick={handleReassign}
@@ -151,8 +149,8 @@
     <br />
 
     <template if:true={showEdit}>
-        <c-edit-task record-id={recordId} onclosemodalevent={handleCloseModal} onupdateevent={handleUpdateTask}>
-        </c-edit-task>
+        <c-edit-sub-task record-id={recordId} onclosemodalevent={handleCloseModal} onupdateevent={handleUpdateTask}>
+        </c-edit-sub-task>
     </template>
 
 <template if:true={showReassigForm}>
