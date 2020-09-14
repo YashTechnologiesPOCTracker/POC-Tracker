@@ -66,19 +66,25 @@ export default class ShowReport extends LightningElement {
                 console.log('userId ' + userId);
                 console.log('data in report ' + JSON.stringify(data));
                 this.refreshReport = data;
-                this.chart.data.labels = [];
-                this.chart.data.datasets.forEach((dataset) => {
-                    dataset.data = [];
-                    dataset.backgroundColor = [];
-                });
+                if (Array.isArray(data) && data.length) {
+                    this.chart.data.labels = [];
+                    this.chart.data.datasets.forEach((dataset) => {
+                        dataset.data = [];
+                        dataset.backgroundColor = [];
+                    });
 
-                if (!(Array.isArray(this.chart.data.labels) && this.chart.data.labels.length)) {
-                    for (var key in data) {
-                        this.updateChart(data[key].count, data[key].label);
+                    if (!(Array.isArray(this.chart.data.labels) && this.chart.data.labels.length)) {
+                        for (var key in data) {
+                            this.updateChart(data[key].count, data[key].label);
+                        }
+                        this.isDataAvailable = true;
+                        console.log('scId get report ' + this.scId);
                     }
-                    this.isDataAvailable = true;
-                    console.log('scId get report ' + this.scId);
+                } else {
+                    const customEvent = new CustomEvent('emptyreport');
+                    this.dispatchEvent(customEvent);
                 }
+
 
             })
             .catch((err) => {

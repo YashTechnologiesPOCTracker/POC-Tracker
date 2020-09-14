@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
     <div class="slds-m-around_medium">
         <template if:true={isDataAvilable}>
             <template if:true={taskList}>
@@ -33,4 +33,89 @@
             </c-employee-task-view>
         </template>
 </div>
+</template> -->
+
+<template>
+    <lightning-tabset>
+        <lightning-tab label="Active Tasks" value="1">
+            <div class="slds-m-around_medium">
+                <template if:true={isDataAvilable}>
+                    <template if:true={taskList}>
+                        <lightning-card title='Your Assigned Epics' icon-name="action:record">
+                            <lightning-datatable key-field="Id" data={taskList} columns={columns}
+                                hide-checkbox-column="true" onsave={handleSave} draft-values={draftValues}
+                                onrowaction={handleRowAction}>
+                            </lightning-datatable>
+                            
+                            <div class="slds-m-around_medium">
+                                <p class="slds-m-vertical_medium content">
+                                    <b> Page {page} of {totalPage}</b>
+                                </p>
+                                <c-paginator onprevious={previousHandler} onnext={nextHandler}></c-paginator>
+                            </div>
+                        </lightning-card>
+                    </template>
+</template>
+<template if:false={isDataAvilable}>
+                    <div class="slds-p-left_small">
+                        <p>No Data Found</p>
+                    </div>
+                </template>
+<template if:true={error}>
+                    {err}
+                </template>
+</div>
+<div class="slds-m-around_medium">
+    <template if:true={showEditTask}>
+                    <c-employee-edit-task record-id={recordId} progress={progress} onclosemodalevent={handleCloseModal}
+                        onupdateevent={handleUpdateTask}>
+                    </c-employee-edit-task>
+                </template>
+</div>
+<div class="slds-m-around_medium">
+    <template if:true={showViewTask}>
+                    <c-employee-task-view record-id={recordId} progress={progress} onclosemodalevent={handleCloseModal}
+                        onupdateevent={handleUpdateTask}>
+                    </c-employee-task-view>
+                </template>
+</div>
+</lightning-tab>
+
+<lightning-tab label="Completed Tasks" value="2">
+    <div class="slds-m-around_medium">
+        <template if:true={isCompletedTaskDataAvilable}>
+                    <template if:true={completedTaskList}>
+                        <lightning-card title='Your Completed Epics' icon-name="action:record">
+                            <lightning-datatable key-field="Id" data={completedTaskList} columns={completedColumns}
+                                hide-checkbox-column="true" onsave={handleSave} draft-values={draftValues}
+                                onrowaction={handleRowAction}>
+                            </lightning-datatable>
+
+                            <div class="slds-m-around_medium">
+                                <p class="slds-m-vertical_medium content">
+                                    <b> Page {page1} of {totalPage1}</b>
+                                </p>
+                                <c-paginator onprevious={previousHandler1} onnext={nextHandler1}></c-paginator>
+                            </div>
+                        </lightning-card>
+                    </template>
+        </template>
+        <template if:false={isCompletedTaskDataAvilable}>
+                    <div class="slds-p-left_small">
+                        <p>No Data Found</p>
+                    </div>
+                </template>
+        <template if:true={error}>
+                    {err}
+                </template>
+    </div>
+    <div class="slds-m-around_medium">
+        <template if:true={showViewTask}>
+                    <c-employee-task-view record-id={recordId} progress={progress} onclosemodalevent={handleCloseModal}
+                        onupdateevent={handleUpdateTask}>
+                    </c-employee-task-view>
+                </template>
+    </div>
+</lightning-tab>
+</lightning-tabset>
 </template>

@@ -35,4 +35,12 @@ export default class BlankComponent extends LightningElement {
         unregisterAllListeners(this);
     }
 
+    handleEmptyData() {
+        this.isTaskTrue = false;
+    }
+
+    handleEmptySubData() {
+        this.isSubTaskTrue = false;
+    }
+
 }

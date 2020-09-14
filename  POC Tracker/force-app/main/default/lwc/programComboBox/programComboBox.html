@@ -1,11 +1,27 @@
 <template>
-    <div class="slds-size--1-of-8 slds-p-around--large">
+    <!-- <div class="slds-size--1-of-8 slds-p-around--large">
         <lightning-combobox 
-        name="Applicant List" 
-        label="Select Filter" 
-        value={value} 
-        options={options}
+            name="Program List" 
+            label="Program" 
+            value={value} 
+            options={options}
             onchange={handleChange}>
         </lightning-combobox>
+    </div> -->
+
+    <!-- <div>
+        Id: {recordId}
     </div>
+    <lightning-file-upload label="Upload" name="fileUploader" accept={acceptedFormats} record-id={recordId}
+        onuploadfinished={handleUploadFinished}>
+    </lightning-file-upload> -->
+
+    <lightning-record-edit-form object-api-name="Tracker__c" onsuccess={createTask}>
+        <div class="slds-grid slds-wrap slds-hide">
+            <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                <lightning-input-field field-name="Assigned_To__c">
+                </lightning-input-field>
+            </span>
+        </div>
+    </lightning-record-edit-form>
 </template>

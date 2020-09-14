@@ -1,7 +1,10 @@
 <template>
-    <lightning-card title='Sub Epics distributed by Program'>
+    <lightning-card title='Sub Epics distributed by Program' icon-name="utility:chart">
         <div>
           <canvas class="donut" lwc:dom="manual"></canvas>
         </div>
       </lightning-card>
+      <template if:true={isDataNotAvailable}>
+        <lightning-card>{error}</lightning-card>
+      </template>
 </template>

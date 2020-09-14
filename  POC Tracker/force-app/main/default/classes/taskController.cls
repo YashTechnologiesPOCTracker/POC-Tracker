@@ -1,4 +1,20 @@
 public without sharing class taskController {
+
+    // @AuraEnabled
+    // public static List<Account> findAccounts(){
+    //     return [Select Name, Rating from Account Limit 10];
+    // }
+
+    // @AuraEnabled(cacheable=true)
+    // public static list<Account> getRecentModifiedAccounts(){
+    //     return [SELECT Id, Name, AccountNumber, OwnerId, Owner.Name, AccountSource,  
+    //             AnnualRevenue, Type, Industry,
+    //             BillingStreet, BillingCity, BillingState, BillingPostalCode, BillingCountry,
+    //             Website
+    //             FROM Account 
+    //             Order By LastModifiedDate desc 
+    //             limit 15];
+    // }
     
     @AuraEnabled(cacheable=true)
     public static string getUserProfile() {
@@ -49,7 +65,7 @@ public without sharing class taskController {
     @AuraEnabled(cacheable=true)
     public static List<Tracker__c> listSubTask(String parentId){
         System.debug('Parent Id ' + parentId);
-        List<Tracker__c> listofsubtasks = [select Id, Name, Program__c, Title__c, Start_Date__c, Target_Date__c, Progress__c, Assigned_To__r.Name from 
+        List<Tracker__c> listofsubtasks = [select Id, Name, Program__c, Title__c,State__c, Start_Date__c, Target_Date__c, Progress__c, Assigned_To__r.Name from 
                                         Tracker__c where Parent_Task__r.Id =: parentId];
         System.debug('sub tasks list ' + listofsubtasks);
         return listofsubtasks;                                
@@ -128,7 +144,7 @@ public without sharing class taskController {
     public static Tracker__c getCurrentTask(String recordId){
         System.debug('record Id ' + recordId);
         Tracker__c task = [select Name, Subsidiary_CompetencyId__r.Name, Program__c, Title__c, Start_Date__c, 
-                    Target_Date__c, State__c, Progress__c from Tracker__c where Id =: recordId];
+                    Target_Date__c, State__c, Progress__c, Assigned_To__r.Name from Tracker__c where Id =: recordId];
         System.debug('task ' + task);
         return task;                                
     }   
@@ -144,6 +160,24 @@ public without sharing class taskController {
         return listTrackerByUser;
     }
 
+    @AuraEnabled  
+    public static List<AggregateResult> getEmployeeChartData(String userId) {  
+    system.debug('userId ' + userId);      
+    List<AggregateResult> listTrackerByUser = [SELECT COUNT(Id) Total,State__c  FROM Tracker__c Where (Assigned_To__c =: userId) GROUP BY State__c];           
+    system.debug('list -' + listTrackerByUser); 
+    return listTrackerByUser;   
+}
+
+    // @AuraEnabled
+    // public static List<Tracker__c> getTasksReportByEmployee(String currentUserId) {
+    //     system.debug('userId ' + currentUserId);
+    // List<Tracker__c> listTrackerByUser =  [SELECT Id, Name, Title__c,Target_Date__c,Progress__c, State__c, Start_Date__c, 
+    //                     Program__c, Assigned_To__r.Name, Subsidiary_CompetencyId__r.Subsidiary_Name__r.Name,
+    //                     Subsidiary_CompetencyId__r.Competency_Name__r.Name FROM Tracker__c Where Assigned_To__c =: currentUserId ];
+
+    //     system.debug('list -' + listTrackerByUser);
+    //     return listTrackerByUser;
+    // }
 
 // @AuraEnabled
 // public static String getreport(String scName){
@@ -256,5 +290,97 @@ public without sharing class taskController {
     // System.debug('dataSet ' + dataSet);
     // return dataSet ;                      
     // } 
+
+
+    private static Map<String, String> mapConditionByFilter = new Map<String, String>{
+        'gt100KB' => 'ContentDocument.ContentSize >= ' + 100 * 1024,
+        'lt100KBgt10KB' => '(ContentDocument.ContentSize < ' + 100 * 1024 + ' AND ContentDocument.ContentSize > ' + 10 * 1024 + ')',
+        'lt10KB' => 'ContentDocument.ContentSize <= ' + 10 * 1024
+    };
+
+    @AuraEnabled
+    public static FilesInformation initFiles(Id recordId, List<String> filters, Integer defaultLimit, String sortField, String sortOrder) {
+        List<ContentDocumentLink> contentDocumentLinks = new List<ContentDocumentLink>();
+        defaultLimit = defaultLimit == null ? 3 : defaultLimit;
+
+        String query = generateQuery(recordId, filters, defaultLimit, null, sortField, sortOrder);
+        String countQuery = 'SELECT count() FROM ContentDocumentLink WHERE LinkedEntityId = ' + '\'' + recordId + '\'';
+        countQuery += generateConditionString(filters);
+
+        contentDocumentLinks = Database.query(query);
+        FilesInformation fileInfo = new FilesInformation();
+        fileInfo.totalCount = Database.countQuery(countQuery);
+        fileInfo.contentDocumentLinks = contentDocumentLinks;
+        fileInfo.documentForceUrl = 'https://' + URL.getSalesforceBaseUrl().getHost().substringBefore('.') + '--c.documentforce.com';
+
+        return fileInfo;
+    }
+
+    @AuraEnabled
+    public static List<ContentDocumentLink> loadFiles(Id recordId, List<String> filters, Integer defaultLimit, Integer offset, String sortField, String sortOrder) {
+
+        String query = generateQuery(recordId, filters, defaultLimit, offset, sortField, sortOrder);
+        System.debug(query);
+
+        List<ContentDocumentLink> contentDocumentLinks = Database.query(query);
+
+        return contentDocumentLinks;
+    }
+
+    @AuraEnabled
+    public static List<ContentDocumentLink> queryFiles(Id recordId, List<Id> contentDocumentIds) {
+        List<ContentDocumentLink> contentDocumentLinks = new List<ContentDocumentLink>();
+
+        contentDocumentLinks = [SELECT Id, ContentDocumentId, ContentDocument.LatestPublishedVersionId, ContentDocument.Title, ContentDocument.CreatedDate, ContentDocument.FileExtension, ContentDocument.ContentSize, ContentDocument.FileType
+                                FROM ContentDocumentLink
+                                WHERE LinkedEntityId = :recordId AND ContentDocumentId IN :contentDocumentIds];
+
+        return contentDocumentLinks;
+    }
+
+    private static String generateConditionString(List<String> filters){
+        String conditionString = '';
+        if(filters != null && !filters.isEmpty()){
+            conditionString += ' AND (';
+            Boolean firstFilter = true;
+            for(String filter : filters){
+                if(mapConditionByFilter.containsKey(filter)){
+                    if(!firstFilter){
+                        conditionString += ' OR ';
+                    }
+                    conditionString += mapConditionByFilter.get(filter);
+                    firstFilter = false;
+                }
+            }
+            conditionString += ')';
+        }
+        return conditionString;
+    }
+
+    private static String generateQuery(Id recordId, List<String> filters, Integer defaultLimit, Integer offset, String sortField, String sortOrder){
+        String query = 'SELECT Id, ContentDocumentId, ContentDocument.LatestPublishedVersionId, ContentDocument.Title, ContentDocument.CreatedDate, ContentDocument.FileExtension, ContentDocument.ContentSize,ContentDocument.FileType ';
+        query += 'FROM ContentDocumentLink ';
+        query += 'WHERE LinkedEntityId = \'' + recordId + '\'';
+
+        query += generateConditionString(filters);
+
+        query += ' ORDER BY ' + sortField + ' ' + sortOrder;
+        query += '  LIMIT ' + defaultLimit;
+
+        if(offset != null){
+            query += ' OFFSET ' + offset;
+        }
+
+        return query;
+    }
+
+    public class FilesInformation{
+        @AuraEnabled
+        public Integer totalCount;
+        @AuraEnabled
+        public String documentForceUrl;
+        @AuraEnabled
+        public List<ContentDocumentLink> contentDocumentLinks;
+    }
 
 }

@@ -1,7 +1,7 @@
 import { LightningElement, wire, api } from 'lwc';
 import callSubReport from "@salesforce/apex/taskController.callSubReport";
 import { CurrentPageReference } from "lightning/navigation";
-import { registerListener, unregisterAllListeners } from "c/pubsub";
+import { fireEvent, registerListener, unregisterAllListeners } from "c/pubsub";
 import chartjs from '@salesforce/resourceUrl/ChartJs';
 import { loadScript } from 'lightning/platformResourceLoader';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent'
@@ -11,6 +11,7 @@ import userId from '@salesforce/user/Id';
 export default class ShowSubTaskReport extends LightningElement {
     @api parentId;
     profileName;
+    isDataNotAvailable = false;
     refreshReport;
     error;
     @wire(CurrentPageReference) pageRef;
@@ -34,7 +35,7 @@ export default class ShowSubTaskReport extends LightningElement {
                 console.log('profileName in subreport ' + this.profileName);
             })
             .then(error => {
-                console.log('Error ' + error.message);
+                console.log('Error ' + error);
             })
     }
 
@@ -58,19 +59,29 @@ export default class ShowSubTaskReport extends LightningElement {
         callSubReport({ parentId: this.parentId, userId: userId, profileName: this.profileName })
             .then((data) => {
                 console.log('Report: sub task data ' + JSON.stringify(data) + 'id ' + this.parentId);
-                this.refreshReport = data;
-                this.chart.data.labels = [];
-                this.chart.data.datasets.forEach((dataset) => {
-                    dataset.data = [];
-                    dataset.backgroundColor = [];
-                });
+                if (Array.isArray(data) && data.length) {
+                    this.refreshReport = data;
+                    this.isDataNotAvailable = false;
+                    this.chart.data.labels = [];
+                    this.chart.data.datasets.forEach((dataset) => {
+                        dataset.data = [];
+                        dataset.backgroundColor = [];
+                    });
 
-                if (!(Array.isArray(this.chart.data.labels) && this.chart.data.labels.length)) {
-                    for (var key in data) {
-                        this.updateChart(data[key].count, data[key].label);
+                    if (!(Array.isArray(this.chart.data.labels) && this.chart.data.labels.length)) {
+                        for (var key in data) {
+                            this.updateChart(data[key].count, data[key].label);
+                        }
+                        //this.isDataAvailable = true;
+                        //console.log('parentId ' + this.parentId);
+                    } else {
+                        this.isDataNotAvailable = true;
+                        this.error = err.message;
                     }
-                    //this.isDataAvailable = true;
-                    //console.log('parentId ' + this.parentId);
+                } else {
+                    const customEvent = new CustomEvent('emptyreport');
+                    this.dispatchEvent(customEvent);
+                    fireEvent(this.pageRef, 'EmptySubList', 'No Data in sublist');
                 }
 
             })
@@ -127,7 +138,7 @@ export default class ShowSubTaskReport extends LightningElement {
                 this.dispatchEvent(
                     new ShowToastEvent({
                         title: 'Error loading ChartJS',
-                        message: error.message,
+                        message: error,
                         variant: 'error',
                     }),
                 );

@@ -4,12 +4,13 @@ import getTask from '@salesforce/apex/taskController.getTask';
 import userId from "@salesforce/user/Id";
 import { createRecord } from 'lightning/uiRecordApi'
 import TRACKER_OBJECT from '@salesforce/schema/Tracker__c';
-import TITLE_FIELD from "@salesforce/schema/Tracker__c.Title__c";
-import PROGRAM_FIELD from "@salesforce/schema/Tracker__c.Program__c";
-import ASSIGNED_TO_FIELD from "@salesforce/schema/Tracker__c.Assigned_To__c";
 import SUBCOMPID_FIELD from "@salesforce/schema/Tracker__c.Subsidiary_CompetencyId__c";
 import START_DATE_FIELD from "@salesforce/schema/Tracker__c.Start_Date__c";
 import TARGET_DATE_FIELD from "@salesforce/schema/Tracker__c.Target_Date__c";
+import TITLE_FIELD from "@salesforce/schema/Tracker__c.Title__c";
+import PROGRAM_FIELD from "@salesforce/schema/Tracker__c.Program__c";
+import ASSIGNED_TO_FIELD from "@salesforce/schema/Tracker__c.Assigned_To__c";
+
 
 export default class AddDraggedDataToTask extends LightningElement {
 
@@ -31,6 +32,11 @@ export default class AddDraggedDataToTask extends LightningElement {
             initialWidth: 190
         },
         {
+            label: "Program",
+            fieldName: "program",
+            initialWidth: 105
+        },
+        {
             label: "Start Date",
             fieldName: "startDate",
             editable: true,
@@ -42,11 +48,7 @@ export default class AddDraggedDataToTask extends LightningElement {
             editable: true,
             initialWidth: 105
         },
-        {
-            label: "Assigned To",
-            fieldName: "Assigned_To",
-            initialWidth: 120
-        },
+
     ];
 
     openModal() {
@@ -62,29 +64,29 @@ export default class AddDraggedDataToTask extends LightningElement {
     }
 
 
-    createTask(event) {
-        this.recordId = event.detail.id;
-        console.log("test" + this.recordId)
-        const evt = new ShowToastEvent({
-            title: 'Sucess',
-            message: 'Task Successfully Created',
-            variant: 'success',
-        });
-        this.dispatchEvent(evt);
+    // createTask(event) {
+    //     this.recordId = event.detail.id;
+    //     console.log("test" + this.recordId)
+    //     const evt = new ShowToastEvent({
+    //         title: 'Sucess',
+    //         message: 'Task Successfully Created',
+    //         variant: 'success',
+    //     });
+    //     this.dispatchEvent(evt);
 
-        const inputFields = this.template.querySelectorAll(
-            'lightning-input-field'
-        );
-        if (inputFields) {
-            inputFields.forEach(field => {
-                field.reset();
-            });
-        }
-        this.bShowModal = false;
-        console.log('In Add task before event');
-        const customEvent = new CustomEvent("addevent");
-        this.dispatchEvent(customEvent);
-    }
+    //     const inputFields = this.template.querySelectorAll(
+    //         'lightning-input-field'
+    //     );
+    //     if (inputFields) {
+    //         inputFields.forEach(field => {
+    //             field.reset();
+    //         });
+    //     }
+    //     this.bShowModal = false;
+    //     console.log('In Add task before event');
+    //     const customEvent = new CustomEvent("addevent");
+    //     this.dispatchEvent(customEvent);
+    // }
 
     allowDrop(event) {
         event.preventDefault();
@@ -105,8 +107,8 @@ export default class AddDraggedDataToTask extends LightningElement {
                 obj.subcompId = data.Subsidiary_CompetencyId__c;
                 obj.startDate = data.Start_Date__c;
                 obj.targetDate = data.Target_Date__c;
-                obj.Program = data.Program__c;
-                obj.Assigned_To = '';
+                obj.program = data.Program__c;
+                // obj.Assigned_To = '0052w000005yTaM';
 
                 this.array.push(obj);
                 console.log('Array ' + this.array);
@@ -140,6 +142,8 @@ export default class AddDraggedDataToTask extends LightningElement {
             var result = this.search(index, this.subtaskList);
             editedfields.subcompId = this.subcompId;
             editedfields.title = result.title;
+            editedfields.program = result.program;
+            editedfields.Assigned_To = result.Assigned_To;
             //console.log('Result' + JSON.stringify(result));
 
 
@@ -157,30 +161,30 @@ export default class AddDraggedDataToTask extends LightningElement {
 
         recordInputs.forEach(recordInput => {
             console.log('record input: &&&&', recordInput);
-            // this.createRecords(recordInput);
+            this.createRecords(recordInput);
             console.log('DONE!!!');
         })
 
 
-        Promise.all(promises).then(() => {
-            this.dispatchEvent(
-                new ShowToastEvent({
-                    title: 'Success',
-                    message: 'Epics Created',
-                    variant: 'success'
-                })
-            );
-            this.draftValues = [];
+        // Promise.all(promises).then(() => {
+        //     this.dispatchEvent(
+        //         new ShowToastEvent({
+        //             title: 'Success',
+        //             message: 'Epics Created',
+        //             variant: 'success'
+        //         })
+        //     );
+        //     this.draftValues = [];
 
-        }).catch(error => {
-            this.dispatchEvent(
-                new ShowToastEvent({
-                    title: 'Error creating record',
-                    message: error.body.message,
-                    variant: 'error'
-                })
-            );
-        });
+        // }).catch(error => {
+        //     this.dispatchEvent(
+        //         new ShowToastEvent({
+        //             title: 'Error creating record',
+        //             message: error.body.message,
+        //             variant: 'error'
+        //         })
+        //     );
+        // });
 
     }
 
@@ -197,15 +201,15 @@ export default class AddDraggedDataToTask extends LightningElement {
         fields[TITLE_FIELD.fieldApiName] = fieldValue.editedfields.title;
         fields[START_DATE_FIELD.fieldApiName] = fieldValue.editedfields.startDate;
         fields[TARGET_DATE_FIELD.fieldApiName] = fieldValue.editedfields.targetDate;
-        fields[PROGRAM_FIELD.fieldApiName] = 'Hiring';
-        fields[ASSIGNED_TO_FIELD.fieldApiName] = this.assignedTo;
+        fields[PROGRAM_FIELD.fieldApiName] = fieldValue.editedfields.program;
+        fields[ASSIGNED_TO_FIELD.fieldApiName] = fieldValue.editedfields.Assigned_To;
 
         console.log('FIELDS : ' + JSON.stringify(fields));
 
         const record = { apiName: TRACKER_OBJECT.objectApiName, fields };
         createRecord(record)
             .then(data => {
-                console.log('Created RECORD ID: ');
+                console.log('Created RECORD ID: ' + data.Id);
             })
             .catch(error => {
                 console.log('Error : ' + JSON.stringify(error));

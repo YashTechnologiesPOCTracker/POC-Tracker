@@ -4,6 +4,7 @@ import getSubsidiary from "@salesforce/apex/taskController.getSubsidiaryByCompit
 import userId from "@salesforce/user/Id";
 import { CurrentPageReference } from "lightning/navigation";
 import { fireEvent } from "c/pubsub";
+import { refreshApex } from "@salesforce/apex";
 
 export default class ShowSubsidiaryForLoggedInUser extends LightningElement {
     selectedSubComp;
@@ -17,6 +18,7 @@ export default class ShowSubsidiaryForLoggedInUser extends LightningElement {
     isSubsidiaryTrue = true;
     isCompetencyTrue = false;
     isDataAvailable = false;
+    @track refreshTable;
     @track subsidiaryList;
     @track competencyList;
     @wire(CurrentPageReference) pageRef;
@@ -29,11 +31,6 @@ export default class ShowSubsidiaryForLoggedInUser extends LightningElement {
     //             return myArray[i];
     //         }
     //     }
-    // }
-
-    // connectedCallback() {
-    //     console.log("currentUserId " + this.currentUserId);
-    //     this.getCompetencyDetails();
     // }
 
     // getCompetencyDetails() {
@@ -53,6 +50,22 @@ export default class ShowSubsidiaryForLoggedInUser extends LightningElement {
     //         });
 
     // }
+
+    connectedCallback() {
+        let subdata = sessionStorage.getItem('updateSubTaskList');
+        console.log('SUBDATA ' + subdata);
+        if (subdata != null) {
+            this.refreshPage();
+        }
+    }
+
+    refreshPage() {
+        console.log('in refresh page');
+        sessionStorage.removeItem('updateSubTaskList');
+
+        // return refreshApex(this.refreshTable);
+        window.location.reload()
+    }
 
     @wire(getCompetency, { currentUserId: "$currentUserId" }) getCompetencyList(
         result

@@ -3,17 +3,18 @@ import { ShowToastEvent } from "lightning/platformShowToastEvent";
 
 export default class EditTask extends LightningElement {
     @api recordId;
-    @api hasSubTask;
+    @api isEmpty;
 
 
     connectedCallback() {
         console.log("recordId " + this.recordId);
-        console.log("hasSubTask " + this.hasSubTask);
+        console.log("hasSubTask " + this.isEmpty);
     }
     closeModal() {
         const customEvent = new CustomEvent("closemodalevent");
         this.dispatchEvent(customEvent);
     }
+
 
     handleSuccess(event) {
         console.log("recordId" + this.recordId);

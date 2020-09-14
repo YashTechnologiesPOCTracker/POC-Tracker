@@ -1,14 +1,37 @@
-import { LightningElement, api, track } from 'lwc';
+import { LightningElement, api, track, wire } from 'lwc';
 import chartjs from '@salesforce/resourceUrl/ChartJs';
 import { loadScript } from 'lightning/platformResourceLoader';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import { registerListener, unregisterAllListeners } from 'c/pubsub';
+import { CurrentPageReference } from "lightning/navigation";
+
+
 
 export default class Chart extends LightningElement {
     @api loaderVariant = 'base';
     @api chartConfig;
+    // @api refresh;
+    //@wire(CurrentPageReference) pageRef;
 
     @track isChartJsInitialized;
+
+    // connectedCallback() {
+    //     this.renderedCall();
+    //     registerListener("updateChartEmployee", this.handleCall, this);
+
+    // }
+
+    // handleCall(detail) {
+    //     console.log(' detail chart  ' + detail);
+    //     this.renderedCall();
+    // }
+
+    // disconnectedCallback() {
+    //     unregisterAllListeners(this);
+    // }
+
     renderedCallback() {
+        console.log('Rendered callback called ')
         if (this.isChartJsInitialized) {
             return;
         }

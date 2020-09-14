@@ -13,20 +13,23 @@
             </lightning-layout-item>
         </lightning-layout>
     </div>
-    <lightning-card icon-name="action:record" title="Active Epics">
-        <!-- <lightning-input
+    <lightning-tabset>
+        <lightning-tab label="Active Epics" value="1">
+            <lightning-card icon-name="action:record" title="Active Epics">
+                <!-- <lightning-input
             class="searchbar"
             label="Search"
             value={keyword}
             onchange={handleKeywordChange}>
         </lightning-input> -->
 
-        <div slot="actions">
-            <lightning-button label="Create Epic" title="Open Modal" onclick={addEpic} class="slds-m-left_x-small">
-            </lightning-button>
-        </div>
-        <template if:true={taskList}>
-            <!-- <lightning-layout multiple-rows="true" vertical-align="end">
+                <div slot="actions">
+                    <lightning-button label="Create Epic" title="Open Modal" onclick={addEpic}
+                        class="slds-m-left_x-small">
+                    </lightning-button>
+                </div>
+                <template if:true={taskList}>
+                    <!-- <lightning-layout multiple-rows="true" vertical-align="end">
                 <lightning-layout-item size="12" small-device-size="8" medium-device-size="" large-device-size="4"
                     padding="around-small">
                     <div class="slds-form-element">
@@ -41,20 +44,65 @@
                 </lightning-layout-item>
             </lightning-layout><br /> -->
 
-            <lightning-datatable key-field="Id" data={taskList} columns={columns} hide-checkbox-column="true"
-                onsave={handleSave} draft-values={draftValues} onrowaction={handleRowAction}
-                show-row-number-column="false">
-            </lightning-datatable>
+                    <lightning-datatable key-field="Id" data={taskList} columns={columns} hide-checkbox-column="true"
+                        onsave={handleSave} draft-values={draftValues} onrowaction={handleRowAction}
+                        show-row-number-column="false">
+                    </lightning-datatable>
 
-            <div class="slds-m-around_medium">
-                <p class="slds-m-vertical_medium content">
-                    <b> Displaying {startingRecord} to {endingRecord} of {totalRecountCount} Epics ;
-                        Page {page} of {totalPage}</b>
-                </p>
-                <c-paginator onprevious={previousHandler} onnext={nextHandler}></c-paginator>
-            </div>
-        </template>
+                    <div class="slds-m-around_medium">
+                        <p class="slds-m-vertical_medium content">
+                            <b>Page {page} of {totalPage}</b>
+                        </p>
+                        <c-paginator onprevious={previousHandler} onnext={nextHandler}></c-paginator>
+                    </div>
+                </template>
 </lightning-card>
+</lightning-tab>
+
+<lightning-tab label="Completed Epics" value="2">
+    <lightning-card icon-name="action:record" title="Completed Epics">
+        <!-- <lightning-input
+            class="searchbar"
+            label="Search"
+            value={keyword}
+            onchange={handleKeywordChange}>
+        </lightning-input> -->
+
+        <div slot="actions">
+            <lightning-button label="Create Epic" title="Open Modal" onclick={addEpic} class="slds-m-left_x-small">
+            </lightning-button>
+        </div>
+        <template if:true={completedTaskList}>
+                    <!-- <lightning-layout multiple-rows="true" vertical-align="end">
+                <lightning-layout-item size="12" small-device-size="8" medium-device-size="" large-device-size="4"
+                    padding="around-small">
+                    <div class="slds-form-element">
+                        <div class="slds-form-element__control">
+                            <lightning-input type="text" placeholder="Search" onchange={handleValue}></lightning-input>
+                        </div>
+                    </div>
+                </lightning-layout-item>
+                <lightning-layout-item size="12" small-device-size="2" medium-device-size="2" large-device-size="2"
+                    padding="around-small">
+                    <lightning-button icon-name="standard:search"  onclick={handleSearch}></lightning-button>
+                </lightning-layout-item>
+            </lightning-layout><br /> -->
+
+                    <lightning-datatable key-field="Id" data={completedTaskList} columns={columns} hide-checkbox-column="true"
+                        onsave={handleSave} draft-values={draftValues} onrowaction={handleRowAction}
+                        show-row-number-column="false">
+                    </lightning-datatable>
+
+                    <div class="slds-m-around_medium">
+                        <p class="slds-m-vertical_medium content">
+                            <b>Page {page1} of {totalPage1}</b>
+                        </p>
+                        <c-paginator onprevious={previousHandler1} onnext={nextHandler1}></c-paginator>
+                    </div>
+                </template>
+    </lightning-card>
+</lightning-tab>
+</lightning-tabset>
 <template if:true={showMessage}>
         <lightning-card title={message}>
         </lightning-card>
@@ -71,7 +119,7 @@
 
 <div class="slds-m-around_medium">
     <template if:true={showEditTask}>
-            <c-edit-task record-id={recordId} onclosemodalevent={handleCloseModal} onupdateevent={handleUpdateTask}>
+            <c-edit-task record-id={recordId} is-empty={isEmpty} onclosemodalevent={handleCloseModal} onupdateevent={handleUpdateTask}>
             </c-edit-task>
         </template>
 </div>

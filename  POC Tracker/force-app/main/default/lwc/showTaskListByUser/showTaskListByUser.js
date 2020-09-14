@@ -1,5 +1,5 @@
 import { LightningElement, wire, track, api } from "lwc";
-import getTasks from "@salesforce/apex/taskController.getTasksByUser";
+import getTasks from "@salesforce/apex/TestFinalShowTaskList.getTasksByUser";
 import delSelectedTask from "@salesforce/apex/taskController.deleteTasks";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import { refreshApex } from "@salesforce/apex";
@@ -34,20 +34,31 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
     message;
     showMessage = false;
     isAddEpic = false;
+    isEmpty = false;
     //@track competencyDetail;
     @api selectedSubName;
     @api selectedCompName;
     @track taskList;
+    @track completedTaskList;
     @wire(CurrentPageReference) pageRef;
-    search = '';
+    //search = '';
 
     page = 1;
     items = [];
+    items1 = [];
     startingRecord = 1;
     endingRecord = 0;
     pageSize = 5;
     totalRecountCount = 0;
     totalPage = 0;
+    page1 = 1;
+    items1 = [];
+    items1 = [];
+    startingRecord1 = 1;
+    endingRecord1 = 0;
+    pageSize1 = 5;
+    totalRecountCount1 = 0;
+    totalPage1 = 0;
 
     @track columns = [{
             label: "ID",
@@ -66,12 +77,12 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
             initialWidth: 120,
             //editable: true
         },
-        {
-            label: "Progress",
-            fieldName: "progress",
-            initialWidth: 100,
-            // editable: true
-        },
+        // {
+        //     label: "Progress",
+        //     fieldName: "progress",
+        //     initialWidth: 100,
+        //     // editable: true
+        // },
         {
             label: "Start Date",
             fieldName: "startDate",
@@ -96,15 +107,19 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
         }
     ];
 
+
     @wire(getTasks, { currentUserId: "$currentUserId", subcompId: '$subcompId' }) getTaskList(result) {
+        var taskArray = [];
+        var completedTaskArray = [];
         this.refreshTable = result;
+
         if (result.data) {
             let newData;
             newData = result.data;
-            this.error = undefined;
-            let newArray = [];
-            newData.forEach((element) => {
-                if (element.State__c != 'Completed') {
+            //console.log('Task Data:::::: ----- ' + JSON.stringify(newData));
+            newData.forEach(element => {
+                // var State = element.State__c;
+                if (element.State__c == 'Completed') {
                     let newObject = {};
                     newObject.Id = element.Id;
                     newObject.Name = element.Name;
@@ -117,17 +132,32 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
                     if (element.Assigned_To__r.Name) {
                         newObject.Assigned_To = element.Assigned_To__r.Name;
                     }
-                    newArray.push(newObject);
+                    completedTaskArray.push(newObject);
+                } else {
+                    let newObject = {};
+                    newObject.Id = element.Id;
+                    newObject.Name = element.Name;
+                    newObject.Title = element.Title__c;
+                    newObject.Program = element.Program__c;
+                    newObject.startDate = element.Start_Date__c;
+                    newObject.targetDate = element.Target_Date__c;
+                    newObject.progress = element.Progress__c;
+                    newObject.state = element.State__c;
+                    if (element.Assigned_To__r.Name) {
+                        newObject.Assigned_To = element.Assigned_To__r.Name;
+                    }
+                    taskArray.push(newObject);
                 }
             });
 
-            if (Array.isArray(newArray) && newArray.length) {
-                //this.taskList = newArray;
+            if (Array.isArray(taskArray) && taskArray.length) {
+                this.taskList = taskArray;
+                console.log('task list ' + JSON.stringify(this.taskList));
                 this.showMessage = false;
                 fireEvent(this.pageRef, "selectedSubIdForReport", this.subcompId);
 
-                this.items = newArray;
-                this.totalRecountCount = newArray.length;
+                this.items = taskArray;
+                this.totalRecountCount = taskArray.length;
                 this.totalPage = Math.ceil(this.totalRecountCount / this.pageSize);
                 this.taskList = this.items.slice(0, this.pageSize);
                 this.endingRecord = this.pageSize;
@@ -139,13 +169,36 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
                 this.showMessage = true;
                 this.taskList = undefined;
             }
-            // console.log("taskList from task user list" + JSON.stringify(this.taskList));
+
+
+            if (Array.isArray(completedTaskArray) && completedTaskArray.length) {
+                this.completedTaskList = completedTaskArray;
+                this.showMessage = false;
+                console.log('task list ' + JSON.stringify(this.completedTaskList))
+                fireEvent(this.pageRef, "selectedSubIdForReport", this.subcompId);
+
+                this.items1 = completedTaskArray;
+                this.totalRecountCount1 = completedTaskArray.length;
+                this.totalPage1 = Math.ceil(this.totalRecountCount1 / this.pageSize1);
+                this.completedTaskList = this.items1.slice(0, this.pageSize1);
+                this.endingRecord1 = this.pageSize1;
+
+                this.error = undefined;
+                // this.showDataReport();
+            } else {
+                this.message = 'Could Not find any Completed Task for the Requested Competency';
+                this.showMessage = true;
+                this.completedTaskList = undefined;
+            }
         } else if (result.error) {
             this.error = result.error;
             this.taskList = undefined;
+            this.completedTaskList = undefined;
         }
-
     }
+
+
+
 
     connectedCallback() {
         console.log("currentUserId " + this.currentUserId);
@@ -313,7 +366,33 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
             this.totalRecountCount : this.endingRecord;
 
         this.taskList = this.items.slice(this.startingRecord, this.endingRecord);
+        //this.completedTaskList = this.items1.slice(this.startingRecord, this.endingRecord);
         this.startingRecord = this.startingRecord + 1;
+    }
+
+    previousHandler1() {
+        if (this.page1 > 1) {
+            this.page1 = this.page1 - 1;
+            this.displayRecordPerPage1(this.page1);
+        }
+    }
+
+    nextHandler1() {
+        if ((this.page1 < this.totalPage1) && this.page1 !== this.totalPage1) {
+            this.page1 = this.page1 + 1;
+            this.displayRecordPerPage1(this.page1);
+        }
+    }
+
+    displayRecordPerPage1(page1) {
+        this.startingRecord1 = ((page1 - 1) * this.pageSize1);
+        this.endingRecord1 = (this.pageSize1 * page1);
+        this.endingRecord1 = (this.endingRecord1 > this.totalRecountCount1) ?
+            this.totalRecountCount1 : this.endingRecord1;
+
+        //this.taskList = this.items.slice(this.startingRecord, this.endingRecord);
+        this.completedTaskList = this.items1.slice(this.startingRecord1, this.endingRecord1);
+        this.startingRecord1 = this.startingRecord1 + 1;
     }
 
     handleCloseModal() {
