@@ -14,7 +14,7 @@ import { fireEvent, registerListener, unregisterAllListeners } from "c/pubsub";
 
 const actions = [
     { label: "View", name: "view" },
-    { label: "Edit", name: "edit" },
+    // { label: "Edit", name: "edit" },
 
 ];
 
@@ -210,14 +210,14 @@ export default class EmployeeTaskList extends NavigationMixin(LightningElement) 
     endingRecord = 0;
     pageSize = 5;
     totalRecountCount = 0;
-    totalPage = 0;
+    totalPage = 1;
     page1 = 1;
     items1 = [];
     startingRecord1 = 1;
     endingRecord1 = 0;
     pageSize1 = 5;
     totalRecountCount1 = 0;
-    totalPage1 = 0;
+    totalPage1 = 1;
 
     @track recordId;
     @track PTGName;
@@ -238,17 +238,19 @@ export default class EmployeeTaskList extends NavigationMixin(LightningElement) 
         {
             label: "Subsidiary Name",
             fieldName: "subsidiaryName",
+            sortable: "true",
 
         },
         {
             label: "Competency Name",
             fieldName: "competencyName",
+            sortable: "true",
 
         },
         {
             label: "Title",
             fieldName: "Title",
-
+            sortable: "true",
         },
         // {
         //     label: "Progress",
@@ -259,13 +261,14 @@ export default class EmployeeTaskList extends NavigationMixin(LightningElement) 
         {
             label: "Program",
             fieldName: "Program",
-            initialWidth: 120
-
+            initialWidth: 120,
+            sortable: "true",
         },
         {
             label: "State",
             fieldName: "State",
-            initialWidth: 100
+            initialWidth: 100,
+            sortable: "true",
         },
         // {
         //     label: "Start_Date",
@@ -297,7 +300,7 @@ export default class EmployeeTaskList extends NavigationMixin(LightningElement) 
         {
             label: "Subsidiary Name",
             fieldName: "subsidiaryName",
-
+            sortable: "true",
         },
         {
             label: "Competency Name",
@@ -307,7 +310,7 @@ export default class EmployeeTaskList extends NavigationMixin(LightningElement) 
         {
             label: "Title",
             fieldName: "Title",
-
+            sortable: "true",
         },
         // {
         //     label: "Progress",
@@ -317,13 +320,14 @@ export default class EmployeeTaskList extends NavigationMixin(LightningElement) 
         {
             label: "Program",
             fieldName: "Program",
-            initialWidth: 120
-
+            initialWidth: 120,
+            sortable: "true",
         },
         {
             label: "State",
             fieldName: "State",
-            initialWidth: 100
+            initialWidth: 100,
+            sortable: "true",
         },
         // {
         //     label: "Target_Date",
@@ -366,6 +370,88 @@ export default class EmployeeTaskList extends NavigationMixin(LightningElement) 
         window.location.reload()
     }
 
+    //code for sorting and filter //
+    @track sortBy;
+    @track sortDirection;
+    ALL_CASES = [];
+    value = 'all';
+
+
+    get options() {
+        return [
+            { label: 'All', value: 'All' },
+            { label: 'Not Started', value: 'Not Started' },
+            { label: 'In-Progress', value: 'In-Progress' },
+            { label: 'On hold', value: 'On hold' },
+        ];
+    }
+
+    handleChange(event) {
+        //alert('in handle change')
+        const inputValue = event.detail.value;
+        //console.log('inputValue', inputValue);
+        const regex = new RegExp(`^${inputValue}`, 'i');
+        this.taskList = this.ALL_CASES.filter(row => regex.test(row.State));
+        if (!event.target.value) {
+            this.taskList = [...this.ALL_CASES];
+        } else if (inputValue === 'All') {
+            this.taskList = this.ALL_CASES;
+        }
+    }
+
+
+    updateColumnSorting(event) {
+        let fieldName = event.detail.fieldName;
+        let sortDirection = event.detail.sortDirection;
+        //assign the values
+        this.sortBy = fieldName;
+        this.sortDirection = sortDirection;
+        //call the custom sort method.
+        this.sortData(fieldName, sortDirection);
+    }
+
+
+    handleSortdata(event) {
+        // field name
+        this.sortBy = event.detail.fieldName;
+
+        // sort direction
+        this.sortDirection = event.detail.sortDirection;
+
+        // calling sortdata function to sort the data based on direction and selected field
+        console.log('DAtA RAVISH DATA DATA =========');
+        this.sortData(event.detail.fieldName, event.detail.sortDirection);
+
+
+    }
+
+
+    sortData(fieldname, direction) {
+        // serialize the data before calling sort function
+        console.log('DAtA RAVISH DATA DATA =========' + JSON.parse(JSON.stringify(this.taskList)));
+        let parseData = JSON.parse(JSON.stringify(this.taskList));
+
+
+        // Return the value stored in the field
+        let keyValue = (a) => {
+            return a[fieldname];
+        };
+        // cheking reverse direction 
+        let isReverse = direction === 'asc' ? 1 : -1;
+        // sorting data 
+        parseData.sort((x, y) => {
+            x = keyValue(x) ? keyValue(x) : ''; // handling null values
+            y = keyValue(y) ? keyValue(y) : '';
+
+            // sorting values based on direction
+            return isReverse * ((x > y) - (y > x));
+        });
+        // set the sorted data to data table data
+        this.taskList = parseData;
+    }
+
+    // sorting and filter code ends here //
+
     @wire(getTasks, { currentUserId: "$currentUserId" }) getTaskList(result) {
 
         var taskArray = [];
@@ -375,7 +461,7 @@ export default class EmployeeTaskList extends NavigationMixin(LightningElement) 
         if (result.data) {
             let newData;
             newData = result.data;
-            console.log('Task Data:::::: ----- ' + JSON.stringify(newData));
+            //console.log('Task Data:::::: ----- ' + JSON.stringify(newData));
             newData.forEach(element => {
                 var State = element.State__c;
                 if (element.State__c == 'Completed') {
@@ -425,6 +511,7 @@ export default class EmployeeTaskList extends NavigationMixin(LightningElement) 
                 this.totalRecountCount = taskArray.length;
                 this.totalPage = Math.ceil(this.totalRecountCount / this.pageSize);
                 this.taskList = this.items.slice(0, this.pageSize);
+                this.ALL_CASES = this.items.slice(0, this.pageSize);
                 this.endingRecord = this.pageSize;
             } else {
                 this.taskList = [];
@@ -453,7 +540,7 @@ export default class EmployeeTaskList extends NavigationMixin(LightningElement) 
 
     handleRowAction(event) {
         let actionName = event.detail.action.name;
-        console.log("actionName ====> " + actionName);
+        //  console.log("actionName ====> " + actionName);
         let row = event.detail.row;
         this.recordId = event.detail.row.Id;
         this.progress = event.detail.row.Progress;
@@ -468,7 +555,7 @@ export default class EmployeeTaskList extends NavigationMixin(LightningElement) 
                 this[NavigationMixin.Navigate]({
                     type: 'comm__namedPage',
                     attributes: {
-                        name: 'testPalashEmpTaskDetail__c'
+                        name: 'Employee_Task_Detail__c'
                     }
                 });
                 break;
@@ -483,6 +570,8 @@ export default class EmployeeTaskList extends NavigationMixin(LightningElement) 
     }
 
 
+
+
     handleSave(event) {
         const fields = {};
 
@@ -494,74 +583,91 @@ export default class EmployeeTaskList extends NavigationMixin(LightningElement) 
                     variant: "error"
                 })
             );
+        } else if (event.detail.draftValues[0].Progress == 90) {
+            // console.log('Inside else')
+            fields[ID_FIELD.fieldApiName] = event.detail.draftValues[0].Id;
+            fields[STATE_FIELD.fieldApiName] = "On hold";
+            fields[PROGRESS_FIELD.fieldApiName] = event.detail.draftValues[0].Progress;
+            //console.log('Inside If')
+            const recordInput = { fields };
+            updateRecord(recordInput)
+                .then(() => {
+                    this.dispatchEvent(
+                        new ShowToastEvent({
+                            title: "Success",
+                            message: "Epic Updated",
+                            variant: "success"
+                        })
+                    );
+                    this.draftValues = [];
+                    fireEvent(this.pageRef, "updateEmployeeReportChart", "Updated");
+                    return refreshApex(this.refreshTable);
+                })
+                .catch((error) => {
+                    this.dispatchEvent(
+                        new ShowToastEvent({
+                            title: "Error updating Epic",
+                            message: error.body.message,
+                            variant: "error"
+                        })
+                    );
+                });
         } else {
-            if (event.detail.draftValues[0].Progress == 90) {
-                fields[ID_FIELD.fieldApiName] = event.detail.draftValues[0].Id;
-                fields[PROGRESS_FIELD.fieldApiName] = event.detail.draftValues[0].Progress;
-                fields[STATE_FIELD.fieldApiName] = 'On hold';
-                const recordInput = { fields };
-                updateRecord(recordInput)
-                    .then(() => {
-                        this.dispatchEvent(
-                            new ShowToastEvent({
-                                title: "Success",
-                                message: "Task Updated",
-                                variant: "success"
-                            })
-                        );
-                        this.draftValues = [];
-                        //  fireEvent(this.pageRef, "updateEmployeeReportChart", "Updated");
-                        return refreshApex(this.refreshTable);
-                    })
-                    .catch((error) => {
-                        this.dispatchEvent(
-                            new ShowToastEvent({
-                                title: "Error updating Epic",
-                                message: error.body.message,
-                                variant: "error"
-                            })
-                        );
-                    });
-            } else {
-                fields[ID_FIELD.fieldApiName] = event.detail.draftValues[0].Id;
-                fields[PROGRESS_FIELD.fieldApiName] = event.detail.draftValues[0].Progress;
-                const recordInput = { fields };
-                updateRecord(recordInput)
-                    .then(() => {
-                        this.dispatchEvent(
-                            new ShowToastEvent({
-                                title: "Success",
-                                message: "Task Updated",
-                                variant: "success"
-                            })
-                        );
-                        this.draftValues = [];
-                        // fireEvent(this.pageRef, "updateEmployeeReportChart", "Updated");
-                        return refreshApex(this.refreshTable);
-                    })
-                    .catch((error) => {
-                        this.dispatchEvent(
-                            new ShowToastEvent({
-                                title: "Error updating Epic",
-                                message: error.body.message,
-                                variant: "error"
-                            })
-                        );
-                    });
-            }
-
+            const fields = {};
+            fields[ID_FIELD.fieldApiName] = event.detail.draftValues[0].Id;
+            fields[PROGRESS_FIELD.fieldApiName] = event.detail.draftValues[0].Progress;
+            const recordInput = { fields };
+            updateRecord(recordInput)
+                .then(() => {
+                    this.dispatchEvent(
+                        new ShowToastEvent({
+                            title: "Success",
+                            message: "Epic Updated",
+                            variant: "success"
+                        })
+                    );
+                    this.draftValues = [];
+                    // fireEvent(this.pageRef, "updateEmployeeReportChart", "Updated");
+                    return refreshApex(this.refreshTable);
+                })
+                .catch((error) => {
+                    this.dispatchEvent(
+                        new ShowToastEvent({
+                            title: "Error updating Epic",
+                            message: error.body.message,
+                            variant: "error"
+                        })
+                    );
+                });
         }
     }
+
 
     handleCloseModal() {
         this.showEditTask = false;
         this.showViewTask = false;
-
+        console.log('in close modal')
     }
 
-    handleUpdateTask() {
+    handleUpdateTask(event) {
+        let progress = event.detail;
         this.showEditTask = false;
         this.showViewTask = false;
+        console.log('Progress - ' + progress);
+        console.log('handleupdate emplist')
+        if (progress == 90) {
+            const fields = {};
+            fields[ID_FIELD.fieldApiName] = this.recordId;
+            fields[STATE_FIELD.fieldApiName] = "On hold";
+            fields[PROGRESS_FIELD.fieldApiName] = 90;
+            console.log('Inside If')
+            const recordInput = { fields };
+            updateRecord(recordInput).then(() => {
+                console.log('in handle update task')
+            }).catch()
+        }
+
+        // console.log('in handle update task')
         return refreshApex(this.refreshTable);
     }
 
@@ -586,7 +692,8 @@ export default class EmployeeTaskList extends NavigationMixin(LightningElement) 
             this.totalRecountCount : this.endingRecord;
 
         this.taskList = this.items.slice(this.startingRecord, this.endingRecord);
-        this.completedTaskList = this.items1.slice(this.startingRecord, this.endingRecord);
+        this.ALL_CASES = this.items.slice(this.startingRecord, this.endingRecord);
+        // this.completedTaskList = this.items1.slice(this.startingRecord, this.endingRecord);
         this.startingRecord = this.startingRecord + 1;
     }
 

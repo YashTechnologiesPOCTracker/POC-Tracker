@@ -9,7 +9,7 @@
                     </lightning-icon>
                     <span class="slds-assistive-text">Close</span>
                 </button>
-                <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Edit Task</h2>
+                <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Edit Sub-Epic</h2>
             </header>
             <lightning-card>
                 <lightning-record-edit-form record-id={recordId} object-api-name="Tracker__c" onsuccess={handleSuccess}>
@@ -23,7 +23,7 @@
                             <lightning-input-field field-name="Title__c"></lightning-input-field>
                         </span>
                         <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
-                            <lightning-input-field field-name="Program__c"></lightning-input-field>
+                            <lightning-input-field field-name="Program__c" value={program} disabled></lightning-input-field>
                         </span>
                     </div>
                     <div class="slds-grid slds-wrap">
@@ -31,8 +31,9 @@
                             <lightning-input-field field-name="State__c"></lightning-input-field>
                         </span>
                         <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
-                            <lightning-input-field field-name="Assigned_To__c"></lightning-input-field>
+                            <lightning-input-field field-name="SubProgarms__c" disabled={subprogram}></lightning-input-field>
                         </span>
+                        
                     </div>
                     <div class="slds-grid slds-wrap">
                         <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
@@ -43,11 +44,14 @@
                         </span>
                     </div>
                     <div class="slds-grid slds-wrap">
-                        <div class="slds-grid slds-wrap">
-                            <span class="slds-size_1-of-2 slds-max-small-size_1-of-1 ">
+                        <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning-input-field field-name="Assigned_To__c"></lightning-input-field>
+                        </span>
+                            <span if:false={hasSubTasks} class="slds-size_1-of-2 slds-max-small-size_1-of-1 ">
                                 <lightning-input-field field-name="Progress__c" type="number" min="0" max="100"
                                     formatter="percent" onchange={progressOnChange}></lightning-input-field>
                             </span>
+                            
                             <!-- <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
                                 <div class="slds-progress-bar_circular">
                                     <div class="slds-progress-bar__value_success">
@@ -55,7 +59,6 @@
                                     </div>
                                 </div>
                             </span>  -->
-                        </div>
                     </div>
                     <div class="slds-grid slds-wrap">
                         <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">

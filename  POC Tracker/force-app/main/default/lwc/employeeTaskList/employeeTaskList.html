@@ -1,52 +1,25 @@
-<!-- <template>
-    <div class="slds-m-around_medium">
-        <template if:true={isDataAvilable}>
-            <template if:true={taskList}>
-                <lightning-card title='Your Assigned Epics' icon-name="action:record">
-                    <lightning-datatable key-field="Id" data={taskList} columns={columns} hide-checkbox-column="true"
-                        onsave={handleSave} draft-values={draftValues} onrowaction={handleRowAction}>
-                    </lightning-datatable>
-                </lightning-card>
-            </template>
-</template>
-<template if:false={isDataAvilable}>
-            <div class="slds-p-left_small">
-                <p>No Data Found</p>
-            </div>
-        </template>
-<template if:true={error}>
-            {err}
-        </template>
-
-</div>
-<div class="slds-m-around_medium">
-    <template if:true={showEditTask}>
-            <c-employee-edit-task record-id={recordId} progress={progress} onclosemodalevent={handleCloseModal}
-                onupdateevent={handleUpdateTask}>
-            </c-employee-edit-task>
-        </template>
-</div>
-<div class="slds-m-around_medium">
-    <template if:true={showViewTask}>
-            <c-employee-task-view record-id={recordId} progress={progress} onclosemodalevent={handleCloseModal}
-                onupdateevent={handleUpdateTask}>
-            </c-employee-task-view>
-        </template>
-</div>
-</template> -->
-
 <template>
     <lightning-tabset>
         <lightning-tab label="Active Tasks" value="1">
             <div class="slds-m-around_medium">
                 <template if:true={isDataAvilable}>
                     <template if:true={taskList}>
-                        <lightning-card title='Your Assigned Epics' icon-name="action:record">
+
+                        <lightning-card title='Assigned Epics' icon-name="action:record">
+                            <lightning-card>
+                                <div class="widthCombobox slds-col  slds-wrap slds- slds-size_2-of-12 slds-p-left_medium">
+                                    <lightning-combobox name="State Filter" label="State Filter" value={value}
+                                        placeholder="Select State" options={options} onchange={handleChange}>
+                                    </lightning-combobox>
+                                </div>
+                            </lightning-card>
+
                             <lightning-datatable key-field="Id" data={taskList} columns={columns}
                                 hide-checkbox-column="true" onsave={handleSave} draft-values={draftValues}
-                                onrowaction={handleRowAction}>
+                                onrowaction={handleRowAction} onsort={handleSortdata} sorted-by={sortBy}
+                                sorted-direction={sortDirection}>
                             </lightning-datatable>
-                            
+
                             <div class="slds-m-around_medium">
                                 <p class="slds-m-vertical_medium content">
                                     <b> Page {page} of {totalPage}</b>
@@ -70,6 +43,7 @@
                     <c-employee-edit-task record-id={recordId} progress={progress} onclosemodalevent={handleCloseModal}
                         onupdateevent={handleUpdateTask}>
                     </c-employee-edit-task>
+
                 </template>
 </div>
 <div class="slds-m-around_medium">
@@ -81,7 +55,7 @@
 </div>
 </lightning-tab>
 
-<lightning-tab label="Completed Tasks" value="2">
+<lightning-tab label="Completed Epics" value="2">
     <div class="slds-m-around_medium">
         <template if:true={isCompletedTaskDataAvilable}>
                     <template if:true={completedTaskList}>

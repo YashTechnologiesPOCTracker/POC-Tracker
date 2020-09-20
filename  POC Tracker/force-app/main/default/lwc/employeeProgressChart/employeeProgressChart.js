@@ -64,21 +64,21 @@ export default class EmployeeProgressChart extends LightningElement {
     // }
 
 
-    connectedCallback() {
-        this.getEmployeeChart();
-        registerListener("updateEmployeeReportChart", this.handleCall, this);
-    }
+    // connectedCallback() {
+    //     this.getEmployeeChart();
+    //     registerListener("updateEmployeeReportChart", this.handleCall, this);
+    // }
 
-    handleCall(detail) {
-        console.log(' detail employee progress chart ' + detail);
-        this.getEmployeeChart();
-        fireEvent(this.pageRef, 'updateChartEmployee', 'call rendered method')
-            //this.refresh = true;
-    }
+    // handleCall(detail) {
+    //     console.log(' detail employee progress chart ' + detail);
+    //     this.getEmployeeChart();
+    //     fireEvent(this.pageRef, 'updateChartEmployee', 'call rendered method')
+    //         //this.refresh = true;
+    // }
 
-    disconnectedCallback() {
-        unregisterAllListeners(this);
-    }
+    // disconnectedCallback() {
+    //     unregisterAllListeners(this);
+    // }
 
     getEmployeeChart() {
         getTasksByEmployee({ userId: this.currntUserId })

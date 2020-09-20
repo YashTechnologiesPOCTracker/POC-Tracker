@@ -4,16 +4,18 @@ import { CurrentPageReference } from "lightning/navigation";
 import { fireEvent, registerListener, unregisterAllListeners } from "c/pubsub";
 import chartjs from '@salesforce/resourceUrl/ChartJs';
 import { loadScript } from 'lightning/platformResourceLoader';
-import { ShowToastEvent } from 'lightning/platformShowToastEvent'
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import getProfile from '@salesforce/apex/taskController.getUserProfile';
 import userId from '@salesforce/user/Id';
 
 export default class ShowSubTaskReport extends LightningElement {
     @api parentId;
+    @api program;
     profileName;
     isDataNotAvailable = false;
     refreshReport;
     error;
+    program;
     @wire(CurrentPageReference) pageRef;
 
 
@@ -22,9 +24,14 @@ export default class ShowSubTaskReport extends LightningElement {
         console.log("Connected Callback of Show Sub Report");
         //registerListener("subTaskReportChart", this.handleCallback, this);
         registerListener("subTaskAddedEvent", this.handleCall, this);
+        registerListener("recSubTaskAdded", this.handleCall, this);
+        registerListener("subTaskAddedEmpEvent", this.handleCall, this);
         registerListener("editReportUpdate", this.handleCall, this);
         registerListener("deleteReportUpdate", this.handleCall, this);
-        console.log('after regis....subTaskAddedEvent');
+        registerListener("editRecursiveReportUpdate", this.handleCall, this);
+        registerListener("deleteRecursiveReportUpdate", this.handleCall, this);
+        // console.log('after regis....');
+
         this.getSubTaskReport();
     }
 
@@ -34,21 +41,14 @@ export default class ShowSubTaskReport extends LightningElement {
                 this.profileName = data;
                 console.log('profileName in subreport ' + this.profileName);
             })
-            .then(error => {
+            .catch(error => {
                 console.log('Error ' + error);
             })
     }
 
-    // handleCallback(detail) {
-    //     console.log('parent id detail' + detail);
-    //     this.parentId = detail;
-    //     this.getSubTaskReport();
-    // }
-
     handleCall(detail) {
         console.log(' detail' + detail);
         this.getSubTaskReport();
-        //this.handleCallback(detail);
     }
 
     disconnectedCallback() {
@@ -56,16 +56,16 @@ export default class ShowSubTaskReport extends LightningElement {
     }
 
     getSubTaskReport() {
-        callSubReport({ parentId: this.parentId, userId: userId, profileName: this.profileName })
+        callSubReport({ parentId: this.parentId, userId: userId, profileName: this.profileName, program: this.program })
             .then((data) => {
-                console.log('Report: sub task data ' + JSON.stringify(data) + 'id ' + this.parentId);
+                console.log('Report: sub task data&&& ' + JSON.stringify(data) + 'id ' + this.parentId + ' program ' + this.program);
                 if (Array.isArray(data) && data.length) {
-                    this.refreshReport = data;
+                    // this.refreshReport = data;
                     this.isDataNotAvailable = false;
                     this.chart.data.labels = [];
                     this.chart.data.datasets.forEach((dataset) => {
                         dataset.data = [];
-                        dataset.backgroundColor = [];
+                        //   dataset.backgroundColor = [];
                     });
 
                     if (!(Array.isArray(this.chart.data.labels) && this.chart.data.labels.length)) {
@@ -86,7 +86,7 @@ export default class ShowSubTaskReport extends LightningElement {
 
             })
             .catch((err) => {
-                console.log("In report error " + err);
+                console.log("In report error " + JSON.stringify(err));
                 // this.isDataAvailable = false;
                 // this.error = err.message;
             });
@@ -100,7 +100,26 @@ export default class ShowSubTaskReport extends LightningElement {
         data: {
             datasets: [{
                 data: [],
-                backgroundColor: [],
+                //backgroundColor: [],
+                backgroundColor: [
+                    '#072F5F',
+                    '#557CFF',
+                    '#229389',
+                    '#57C3AD',
+                    '#FF0000',
+                    '#0000FF',
+                    '#008000',
+                    '#800080',
+                    '#008080',
+                    '#000080',
+                    'rgb(255,99,132)',
+                    'rgb(255,159,64)',
+                    'rgb(255,205,86)',
+                    '#FFFF00',
+                    '#00FFFF',
+                    'rgb(75,192,192)',
+
+                ],
                 label: 'Dataset 1'
             }],
             labels: []
@@ -109,8 +128,10 @@ export default class ShowSubTaskReport extends LightningElement {
             cutoutPercentage: 65,
             responsive: true,
             legend: {
-                position: 'right',
+                position: 'bottom',
                 labels: {
+                    fontSize: 10,
+                    boxWidth: 30,
                     usePointStyle: true
                 }
             },
@@ -135,36 +156,37 @@ export default class ShowSubTaskReport extends LightningElement {
                 this.chart = new window.Chart(ctx, this.config);
             })
             .catch(error => {
-                this.dispatchEvent(
-                    new ShowToastEvent({
-                        title: 'Error loading ChartJS',
-                        message: error,
-                        variant: 'error',
-                    }),
-                );
+                // this.dispatchEvent(
+                //     new ShowToastEvent({
+                //         title: 'Error loading ChartJS',
+                //         message: error,
+                //         variant: 'error',
+                //     }),
+                // );
+                console.log('Error loading ChartJS ' + error);
             });
     }
 
     updateChart(count, label) {
         this.chart.data.labels.push(label);
-        //console.log('Update chart label ' + label);
+        console.log('Update chart label ' + label);
         this.chart.data.datasets.forEach((dataset) => {
             dataset.data.push(count);
-            if (label === 'Accelerator') {
-                dataset.backgroundColor.push('#003f5c');
-            } else if (label === 'Delivery Support') {
-                dataset.backgroundColor.push('#2f4b7c');
-            } else if (label === 'Hiring') {
-                dataset.backgroundColor.push('#665191');
-            } else if (label === 'Lab') {
-                dataset.backgroundColor.push('#a05195');
-            } else if (label === 'ServiceLine Support') {
-                dataset.backgroundColor.push('#d45087');
-            } else if (label === 'Training') {
-                dataset.backgroundColor.push('#f95d6a');
-            } else {
-                dataset.backgroundColor.push('#ff7c43');
-            }
+            // if (label === 'Accelerator') {
+            //     dataset.backgroundColor.push('#003f5c');
+            // } else if (label === 'Delivery Support') {
+            //     dataset.backgroundColor.push('#2f4b7c');
+            // } else if (label === 'Hiring') {
+            //     dataset.backgroundColor.push('#665191');
+            // } else if (label === 'Lab') {
+            //     dataset.backgroundColor.push('#a05195');
+            // } else if (label === 'ServiceLine Support') {
+            //     dataset.backgroundColor.push('#d45087');
+            // } else if (label === 'Training') {
+            //     dataset.backgroundColor.push('#f95d6a');
+            // } else {
+            //     dataset.backgroundColor.push('#ff7c43');
+            // }
         });
         // console.log('Update chart DATA ' + count);
         this.chart.update();

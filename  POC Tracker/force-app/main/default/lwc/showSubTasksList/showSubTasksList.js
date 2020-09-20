@@ -16,6 +16,7 @@ import TRACKER_OBJECT from '@salesforce/schema/Tracker__c';
 import SUBCOMPID_FIELD from "@salesforce/schema/Tracker__c.Subsidiary_CompetencyId__c";
 import START_DATE_FIELD from "@salesforce/schema/Tracker__c.Start_Date__c";
 import TARGET_DATE_FIELD from "@salesforce/schema/Tracker__c.Target_Date__c";
+import SUB_PROGRAM_FIELD from "@salesforce/schema/Tracker__c.SubProgarms__c";
 
 import getTask from '@salesforce/apex/taskController.getTask';
 
@@ -30,6 +31,7 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
     //@api profileName;
     //parentId;
     @api subcompId;
+    @api program;
     recordId;
     showEditTask = false;
     showMessage = false;
@@ -58,48 +60,54 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
     endingRecord = 0;
     pageSize = 5;
     totalRecountCount = 0;
-    totalPage = 0;
+    totalPage = 1;
     page1 = 1;
     items1 = [];
     startingRecord1 = 1;
     endingRecord1 = 0;
     pageSize1 = 5;
     totalRecountCount1 = 0;
-    totalPage1 = 0;
+    totalPage1 = 1;
 
     @track columns = [{
             label: "ID",
             fieldName: "Name",
-            initialWidth: 60
+            initialWidth: 60,
+            sortable: "true",
         },
         {
             label: "Title",
             fieldName: "Title",
             editable: true,
-            initialWidth: 220
+            initialWidth: 220,
+            sortable: "true",
         },
         {
             label: "Program",
             fieldName: "Program",
-            initialWidth: 125
+            initialWidth: 125,
+            sortable: "true",
         },
         {
             label: "Progress",
             fieldName: "progress",
-            editable: true,
-            initialWidth: 100
+            //editable: true,
+            initialWidth: 100,
+            sortable: "true",
         },
         {
             label: "Start Date",
             fieldName: "startDate",
             initialWidth: 115,
             editable: true,
+            sortable: "true",
         },
         {
             label: "Target Date",
             fieldName: "targetDate",
             initialWidth: 115,
             editable: true,
+            sortable: "true",
         },
         // {
         //     label: "Assigned To",
@@ -113,12 +121,15 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
     ];
 
     connectedCallback() {
-        console.log('connected callback called in sublist')
+        //console.log('connected callback called in sublist')
         registerListener("updateSubTask", this.handleCall, this);
         registerListener("subTaskAddedEvent", this.handleCall, this);
         registerListener("parentTaskDeleteEvent", this.handleCall, this);
         // registerListener("refreshSubEpicApex", this.handleCallback, this);
-        fireEvent(this.pageRef, 'subTaskReportChart', this.parentId);
+        let reportData = {};
+        reportData.parentId = this.parentId;
+        reportData.program = this.program;
+        fireEvent(this.pageRef, 'subTaskReportChart', reportData);
         // console.log('Profile Name ' + this.profileName);
 
     }
@@ -136,6 +147,87 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
     disconnectedCallback() {
         unregisterAllListeners(this);
     }
+
+
+    //code for sorting and filter //
+    @track sortBy;
+    @track sortDirection;
+    ALL_CASES = [];
+    value = 'all';
+
+
+    get options() {
+        return [
+            { label: 'All', value: 'All' },
+            { label: 'Not Started', value: 'Not Started' },
+            { label: 'In-Progress', value: 'In-Progress' },
+            { label: 'On hold', value: 'On hold' },
+        ];
+    }
+
+    handleChange(event) {
+        //alert('in handle change')
+        const inputValue = event.detail.value;
+        // console.log('inputValue', inputValue);
+        const regex = new RegExp(`^${inputValue}`, 'i');
+        this.subtaskList = this.ALL_CASES.filter(row => regex.test(row.State));
+        if (!event.target.value) {
+            this.subtaskList = [...this.ALL_CASES];
+        } else if (inputValue === 'All') {
+            this.subtaskList = this.ALL_CASES;
+        }
+    }
+
+
+    updateColumnSorting(event) {
+        let fieldName = event.detail.fieldName;
+        let sortDirection = event.detail.sortDirection;
+        //assign the values
+        this.sortBy = fieldName;
+        this.sortDirection = sortDirection;
+        //call the custom sort method.
+        this.sortData(fieldName, sortDirection);
+    }
+
+
+    handleSortdata(event) {
+        // field name
+        this.sortBy = event.detail.fieldName;
+
+        // sort direction
+        this.sortDirection = event.detail.sortDirection;
+
+        // calling sortdata function to sort the data based on direction and selected field
+        // console.log('DAtA RAVISH DATA DATA =========');
+        this.sortData(event.detail.fieldName, event.detail.sortDirection);
+    }
+
+
+    sortData(fieldname, direction) {
+        // serialize the data before calling sort function
+        //console.log('DAtA RAVISH DATA DATA =========' + JSON.parse(JSON.stringify(this.subtaskList)));
+        let parseData = JSON.parse(JSON.stringify(this.subtaskList));
+
+
+        // Return the value stored in the field
+        let keyValue = (a) => {
+            return a[fieldname];
+        };
+        // cheking reverse direction 
+        let isReverse = direction === 'asc' ? 1 : -1;
+        // sorting data 
+        parseData.sort((x, y) => {
+            x = keyValue(x) ? keyValue(x) : ''; // handling null values
+            y = keyValue(y) ? keyValue(y) : '';
+
+            // sorting values based on direction
+            return isReverse * ((x > y) - (y > x));
+        });
+        // set the sorted data to data table data
+        this.subtaskList = parseData;
+    }
+
+    // sorting and filter code ends here //
 
     @wire(subtasks, { parentId: "$parentId" }) getSubTaskList(result) {
         this.refreshTable = result;
@@ -161,6 +253,7 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
                     newObject.progress = element.Progress__c
                     newObject.startDate = element.Start_Date__c;
                     newObject.targetDate = element.Target_Date__c;
+                    newObject.State = element.State__c;
                     // newObject.Assigned_To = null;
                     // if (element.Assigned_To__r.Name) {
                     //     newObject.Assigned_To = element.Assigned_To__r.Name;
@@ -183,6 +276,7 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
                     newObject.progress = element.Progress__c
                     newObject.startDate = element.Start_Date__c;
                     newObject.targetDate = element.Target_Date__c;
+                    newObject.State = element.State__c;
                     // newObject.Assigned_To = null;
                     // if (element.Assigned_To__r.Name) {
                     //     newObject.Assigned_To = element.Assigned_To__r.Name;
@@ -197,7 +291,7 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
                     this.taskArray.push(newObject);
                 }
             });
-            // if data.length and taskArray.length are equal, all data is in taskarray, d
+
             if (Array.isArray(this.taskArray) && this.taskArray.length) {
                 //console.log('task Array iffff' + JSON.stringify(taskArray));
                 this.subtaskList = this.taskArray;
@@ -207,11 +301,12 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
                 this.showMessage1 = false;
                 this.showMessage = false;
 
-                console.log('subtaskList ' + this.subtaskList);
+                // console.log('subtaskList ' + JSON.stringify(this.subtaskList));
                 this.items = this.taskArray;
                 this.totalRecountCount = this.taskArray.length;
-                this.totalPage = Math.ceil(this.totalRecountCount / this.pageSize); //here it is 5
+                this.totalPage = Math.ceil(this.totalRecountCount / this.pageSize);
                 this.subtaskList = this.items.slice(0, this.pageSize);
+                this.ALL_CASES = this.items.slice(0, this.pageSize);
                 this.endingRecord = this.pageSize;
 
                 this.updateProgress();
@@ -266,7 +361,7 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
         event.preventDefault();
         this.isDrop = true;
         this.array = this.taskArray;
-        console.log('Array in taskArray ' + JSON.stringify(this.taskArray));
+        // console.log('Array in taskArray ' + JSON.stringify(this.taskArray));
 
         this.taskArray.forEach(ele => {
                 if (ele.Id) {
@@ -275,12 +370,12 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
             })
             //this.offset = this.taskArray.length;
         console.log('Offset ' + this.offset);
-        console.log('Array in allowdrop ' + JSON.stringify(this.array));
+        // console.log('Array in allowdrop ' + JSON.stringify(this.array));
     }
 
     dropElement(event) {
         this.subtaskList = null;
-        let recordId = event.dataTransfer.getData('taskData');
+        let recordId = event.dataTransfer.getData('taskDataSub');
         //  console.log('Data recordId:', JSON.stringify(recordId));
         getTask({ 'recordId': recordId })
             .then(data => {
@@ -292,24 +387,22 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
                 obj.targetDate = data.Target_Date__c;
                 obj.Program = data.Program__c;
                 obj.progress = data.Progress__c;
-                //obj.Assigned_To = '0052w000005yTaM';
+                obj.subProgram = data.SubProgarms__c;
 
                 this.array.push(obj);
-                console.log('Array ' + JSON.stringify(this.array));
+                // console.log('Array ' + JSON.stringify(this.array));
                 this.subtaskList = this.array;
-                console.log('sub task list 1' + JSON.stringify(this.subtaskList));
-
+                //console.log('sub task list 1' + JSON.stringify(this.subtaskList));
             })
             .catch(error => {
                 console.log('Error ' + error.message);
             });
-
     }
 
     search(Id, myArray) {
         console.log('Id ' + Id + ', Array: ' + JSON.stringify(myArray));
         for (var i = 0; i < myArray.length; i++) {
-            console.log('Here')
+            //console.log('Here')
             if (i == Id) {
                 console.log('Found ' + JSON.stringify(myArray[i]));
                 return myArray[i];
@@ -324,18 +417,25 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
                 const editedfields = Object.assign({}, draft);
 
                 let index = parseInt(editedfields.Id.slice(4, 5));
-                console.log('Index JSON----' + JSON.stringify(index));
+                // console.log('Index JSON----' + JSON.stringify(index));
 
                 let searchIndex = index + this.offset;
-                console.log('Search at: ' + searchIndex);
+                // console.log('Search at: ' + searchIndex);
                 var result = this.search(searchIndex, this.subtaskList);
 
-                editedfields.subcompId = this.subcompId;
+                //editedfields.subcompId = this.subcompId;
                 editedfields.Title = result.Title;
                 editedfields.Program = result.Program;
-                editedfields.progress = result.progress;
-                //editedfields.Assigned_To = '0052w000005yTaM';
-                //console.log('Result' + JSON.stringify(result));
+                editedfields.subProgram = result.subProgram;
+                if (!(editedfields.startDate)) {
+                    editedfields.startDate = result.startDate;
+                }
+                if (!(editedfields.targetDate)) {
+                    editedfields.targetDate = result.targetDate;
+                }
+                if (!(editedfields.progress)) {
+                    editedfields.progress = result.progress;
+                }
 
                 //this.newArray.push(fields);
                 // console.log('newArray ' + JSON.stringify(this.newArray));
@@ -346,20 +446,13 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
                 recordInputs.map(recordInput => {
                     const fields = {};
 
-                    // console.log('FIELDS IN SAVE RECORDS: : ' + fields);
-                    // console.log('NEW FIELDS IN SAVE RECORDS: : ' + JSON.stringify(recordInput));
-                    // console.log('NEW FIELDS TITLE IN SAVE RECORDS: : ' + recordInput.editedfields.Title);
-                    // console.log('NEW FIELDS START DATE IN SAVE RECORDS: : ' + recordInput.editedfields.startDate);
-                    // console.log('NEW FIELDS START DATE IN SAVE RECORDS: : ' + recordInput.editedfields.targetDate);
-                    // console.log('NEW FIELDS this.parentId IN SAVE RECORDS: : ' + this.parentId);
-
-                    fields[SUBCOMPID_FIELD.fieldApiName] = recordInput.editedfields.subcompId;
+                    fields[SUBCOMPID_FIELD.fieldApiName] = this.subcompId;
                     fields[TITLE_FIELD.fieldApiName] = recordInput.editedfields.Title;
                     fields[START_DATE_FIELD.fieldApiName] = recordInput.editedfields.startDate;
                     fields[TARGET_DATE_FIELD.fieldApiName] = recordInput.editedfields.targetDate;
                     fields[PROGRAM_FIELD.fieldApiName] = recordInput.editedfields.Program;
                     fields[PROGRESS_FIELD.fieldApiName] = recordInput.editedfields.progress;
-                    // fields[ASSIGNED_TO_FIELD.fieldApiName] = recordInput.editedfields.Assigned_To;
+                    fields[SUB_PROGRAM_FIELD.fieldApiName] = recordInput.editedfields.subProgram;
                     fields[PARENT_FIELD.fieldApiName] = this.parentId;
 
                     console.log('FIELDS : ' + JSON.stringify(fields));
@@ -381,7 +474,7 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
             }).catch(error => {
                 this.dispatchEvent(
                     new ShowToastEvent({
-                        title: 'Error creating record',
+                        title: 'Error creating Epic record',
                         message: error.body.message,
                         variant: 'error'
                     })
@@ -390,37 +483,44 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
             //return refreshApex(this.refreshTable);
         } else if (!(this.isDrop)) {
             console.log('In else if')
-            const fields = {};
+            const recordInputs = event.detail.draftValues.slice().map(draft => {
+                const fields = Object.assign({}, draft);
+                //console.log('update record1 value ' + JSON.stringify(fields));
+                return { fields };
+            });
 
-            fields[ID_FIELD.fieldApiName] = event.detail.draftValues[0].Id;
-            fields[TITLE_FIELD.fieldApiName] = event.detail.draftValues[0].Title;
-            // fields[PROGRAM_FIELD.fieldApiName] = event.detail.draftValues[0].Program;
-            fields[PROGRESS_FIELD.fieldApiName] = event.detail.draftValues[0].progress;
-
-            const recordInput = { fields };
-            updateRecord(recordInput)
-                .then(() => {
-                    this.dispatchEvent(
-                        new ShowToastEvent({
-                            title: "Success",
-                            message: "Task updated",
-                            variant: "success"
-                        })
-                    );
-                    fireEvent(this.pageRef, "editReportUpdate", 'update sub report');
-                    this.draftValues = [];
-                    //  this.updateProgress();
-                    return refreshApex(this.refreshTable);
+            Promise.all(
+                recordInputs.map(recordInput => {
+                    const fields = {};
+                    fields[ID_FIELD.fieldApiName] = recordInput.fields.Id;
+                    fields[TITLE_FIELD.fieldApiName] = recordInput.fields.Title;
+                    fields[START_DATE_FIELD.fieldApiName] = recordInput.fields.startDate;
+                    fields[TARGET_DATE_FIELD.fieldApiName] = recordInput.fields.targetDate;
+                    const record = { fields };
+                    // console.log('update record value ' + JSON.stringify(fields));
+                    return updateRecord(record)
                 })
-                .catch((error) => {
-                    this.dispatchEvent(
-                        new ShowToastEvent({
-                            title: "Error creating record",
-                            message: error.body.message,
-                            variant: "error"
-                        })
-                    );
-                });
+            ).then(data => {
+                fireEvent(this.pageRef, "editReportUpdate", 'update sub report');
+                this.dispatchEvent(
+                    new ShowToastEvent({
+                        title: 'Success',
+                        message: 'Epics Updated',
+                        variant: 'success'
+                    })
+                );
+                this.draftValues = [];
+
+                return refreshApex(this.refreshTable);
+            }).catch(error => {
+                this.dispatchEvent(
+                    new ShowToastEvent({
+                        title: "Error Updating Epics",
+                        message: error.body.message,
+                        variant: "error"
+                    })
+                );
+            });
         }
     }
 
@@ -432,9 +532,9 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
 
         let recordDetails = {};
         recordDetails.recordId = this.recordId;
-        recordDetails.subName = this.subName;
-        recordDetails.compName = this.compName;
-        recordDetails.title = this.title;
+        // recordDetails.subName = this.subName;
+        //recordDetails.compName = this.compName;
+        //recordDetails.title = this.title;
         recordDetails.completed = this.Completed;
         recordDetails.notCompleted = this.NotCompleted;
         recordDetails.parentId = this.parentId;
@@ -443,6 +543,7 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
         switch (actionName) {
             case "view":
                 console.log("Record Id from subtask " + this.recordId);
+                fireEvent(this.pageRef, "recursiveViewClicked", false);
                 //this.showSubTaskDetail = true;
                 // fireEvent(this.pageRef, "passEventFromSubtaskList", this.recordId);
                 // if (this.profileName === 'Lead') {
@@ -483,7 +584,7 @@ export default class ShowSubTasksList extends NavigationMixin(LightningElement) 
                 this.dispatchEvent(
                     new ShowToastEvent({
                         title: "Success!!",
-                        message: "Record Deleted Successfully",
+                        message: "Epic Record Deleted Successfully",
                         variant: "success"
                     })
                 );

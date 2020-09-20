@@ -30,6 +30,7 @@ export default class ShowReport extends LightningElement {
 
         console.log('scID: ' + this.scId);
         registerListener("updateReportChart", this.handle, this);
+        //this.getReportData();
     }
 
 
@@ -110,7 +111,7 @@ export default class ShowReport extends LightningElement {
             cutoutPercentage: 65,
             responsive: true,
             legend: {
-                position: 'right',
+                position: 'bottom',
                 labels: {
                     usePointStyle: true
                 },

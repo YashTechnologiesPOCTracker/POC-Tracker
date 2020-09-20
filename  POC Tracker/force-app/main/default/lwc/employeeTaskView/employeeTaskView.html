@@ -54,19 +54,32 @@
     <div class="slds-backdrop slds-backdrop_open"></div> -->
 
     <div class="slds-page-header slds-page-header--object-home">
-            <!-- <div class="slds-float_right"> -->
-                <lightning-button label="Back" title="Non-primary action" onclick={handleEpicBack}
-                    class="slds-m-left_x-small"></lightning-button>
-            <!-- </div> -->
+        <div class="slds-float_right">
+            <lightning-button label="Back" title="Non-primary action" onclick={handleEpicBack}
+                class="slds-m-left_x-small"></lightning-button>
+        </div>
+        <lightning-layout>
+            <lightning-layout-item class="slds-m-left--small">
+                <h1 class="slds-page-header__title slds-p-right--x-small">{subName} -> {compName} -> {title}</h1>
+            </lightning-layout-item>
+            <lightning-layout-item>
+            </lightning-layout-item>
+        </lightning-layout>
     </div>
 
 
     <lightning-card icon-name="action:record" title="Epic Detail">
-        <div class="slds-float_left" if:false={isTaskCompleteButton} slot="actions">
-            <lightning-button label='Edit' onclick={handleEdit}></lightning-button>
-        </div>
-        <div class="slds-float_right" if:false={isTaskCompleteButton} slot="actions">
-            <lightning-button variant="brand" label='Mark As Complete' onclick={handleTaskOnHold}></lightning-button>
+        <div slot="actions">
+            <lightning-button label='Edit' onclick={handleEdit} disabled={isTaskCompleteButton}></lightning-button>
+            <lightning-button if:true={isEpicCreationAllowed} class="slds-button slds-button_right"
+                disabled={isTaskCompleteButton} label='Add Sub-Epic' onclick={handleAddSubEpic}>
+            </lightning-button>
+            <lightning-button if:true={isEpicCreationAllowed} class="slds-button slds-button_right"
+                 label='Show Sub-Epic' onclick={handleShowSubEpic}>
+            </lightning-button>
+            <!-- disabled={isTaskCompleteButton} -->
+            <lightning-button variant="brand" label='Submit' onclick={handleTaskOnHold} disabled={isTaskCompleteButton}>
+            </lightning-button>
         </div>
     </lightning-card>
     <br />
@@ -86,6 +99,14 @@
                         </span>
                         <span class="slds-size_1-of-2 slds-max-small-size_1-of-1 ">
                             <lightning-output-field field-name="Program__c"></lightning-output-field>
+                        </span>
+                    </div>
+                    <div class="slds-grid slds-wrap">
+                        <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning-output-field field-name="Client__c"></lightning-output-field>
+                        </span>
+                        <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning-output-field field-name="SubProgarms__c"></lightning-output-field>
                         </span>
                     </div>
                     <div class="slds-grid slds-wrap">
@@ -123,149 +144,31 @@
         </lightning-tab>
         <lightning-tab label="Files" value="2" onactive={handleActive}>
             <lightning-card>
-                <h2 slot="title">
-                    <lightning-icon icon-name="standard:file" size="small" class="slds-var-m-right_small">
-                    </lightning-icon>
-                    <a class="slds-card__header-link" onclick={openFileRelatedList}>{title}</a>
-                    <div class="menu-actions slds-is-absolute">
-                        <lightning-button-menu class="filter" alternative-text="Show menu" menu-alignment="right"
-                            icon-name="utility:filterList" onselect={handleFilterSelect}>
-                            <template for:each={filters} for:item="filter">
-                                <lightning-menu-item key={filter.id} value={filter.id} label={filter.label}
-                                    checked={filter.checked}></lightning-menu-item>
-                            </template>
-</lightning-button-menu>
-</div>
-</h2>
-<div class="slds-var-p-horizontal_medium slds-var-p-vertical_xx-small">
-    <template if:false={noRecords}>
-                        <div class="slds-list_horizontal">
-                            <button class="slds-badge" style="border: none;" onclick={handleSort}
-                                value="ContentDocument.CreatedDate" disabled={disabled}>
-                                <template if:true={DateSorted}>
-                                    <lightning-icon icon-name={sortIcon} size="xx-small" alternative-text={sortOrder}
-                                        title={sortOrder}></lightning-icon>
-                                </template> Date
-    </button>
-    <button class="slds-badge" style="border: none;" onclick={handleSort} value="ContentDocument.Title" disabled={disabled}>
-                                <template if:true={NameSorted}>
-                                    <lightning-icon icon-name={sortIcon} size="xx-small" alternative-text={sortOrder}
-                                        title={sortOrder}></lightning-icon>
-                                </template>
-                                Name
-                            </button>
-    <button class="slds-badge" style="border: none;" onclick={handleSort} value="ContentDocument.ContentSize" disabled={disabled}>
-                                <template if:true={SizeSorted}>
-                                    <lightning-icon icon-name={sortIcon} size="xx-small" alternative-text={sortOrder}
-                                        title={sortOrder}></lightning-icon>
-                                </template>
-                                Size
-                            </button>
-    <!--  Cannot use lightning Badges because icons are not working 
-                                <lightning-badge label="Name" icon-name="utility:arrowup"></lightning-badge>
-                                <lightning-badge label="Date"></lightning-badge>
-                                <lightning-badge label="Size"></lightning-badge>
-                             -->
-</div>
-</template>
+                <c-file-upload-view record-id={recordId} deactivate={deactivate}></c-file-upload-view>
+            </lightning-card>
+        </lightning-tab>
+    </lightning-tabset>
 
-<ul class="slds-var-m-top_medium">
-    <!-- Skeleton Loading -->
-    <template if:false={loaded}>
-                            <li class="forceContentVirtualRelatedListStencil forceRecordLayout">
-                                <div class="slds-list_horizontal slds-media_center slds-var-p-vertical_xx-small">
-                                    <div class="slds-show_inline-block slds-align-middle thumbnailImg">
-                                        <c-stencil width="100%" height="30px" radius="2px"></c-stencil>
-                                    </div>
-                                    <div class="slds-show_inline-block slds-var-p-left_x-small slds-truncate slds-var-m-right_x-small"
-                                        style="width: 100%;">
-                                        <c-stencil width="100%" height="10px" animated="true" radius="30px"></c-stencil>
-                                        <p
-                                            class="slds-m-around_none secondaryFields slds-text-body_small slds-truncate">
-                                            <c-stencil width="100%" height="10px" animated="true" radius="30px">
-                                            </c-stencil>
-                                        </p>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="forceContentVirtualRelatedListStencil forceRecordLayout">
-                                <div class="slds-list_horizontal slds-media_center slds-var-p-vertical_xx-small">
-                                    <div class="slds-show_inline-block slds-align-middle thumbnailImg">
-                                        <c-stencil width="100%" height="30px" radius="2px"></c-stencil>
-                                    </div>
-                                    <div class="slds-show_inline-block slds-var-p-left_x-small slds-truncate slds-var-m-right_x-small"
-                                        style="width: 100%;">
-                                        <c-stencil width="100%" height="10px" animated="true" radius="30px"></c-stencil>
-                                        <p
-                                            class="slds-m-around_none secondaryFields slds-text-body_small slds-truncate">
-                                            <c-stencil width="100%" height="10px" animated="true" radius="30px">
-                                            </c-stencil>
-                                        </p>
-                                    </div>
-                                </div>
-                            </li>
-                        </template>
+    <br />
 
-    <template if:true={loaded}>
-                            <template for:each={attachments} for:item="attachment">
-                                <li key={attachment.Id} class="forceContentVirtualRelatedListStencil forceRecordLayout">
-                                    <div class="slds-list_horizontal slds-media_center slds-var-p-vertical_xx-small">
-                                        <div class="slds-show_inline-block slds-align-middle thumbnailImg">
-                                            <lightning-icon icon-name={attachment.icon} alternative-text="Doctype file"
-                                                data-id={attachment.Id} title="Doctype"></lightning-icon>
-                                            <img src={attachment.src} class="thumbnailImg slds-hide"
-                                                data-id={attachment.Id} onload={handleLoad} />
-                                        </div>
-                                        <div
-                                            class="slds-show_inline-block slds-var-p-left_x-small slds-truncate slds-var-m-right_x-small">
-                                            <a class="itemTitle uiOutputText" onclick={openPreview}
-                                                data-id={attachment.ContentDocumentId}>{attachment.ContentDocument.Title}</a>
-                                            <p
-                                                class="slds-m-around_none secondaryFields slds-text-body_small slds-truncate">
-                                                <span>
-                                                    <lightning-formatted-date-time
-                                                        value={attachment.ContentDocument.CreatedDate}>
-                                                    </lightning-formatted-date-time>
-                                                </span>
-                                                <span>{attachment.size}</span>
-                                                <span>{attachment.ContentDocument.FileExtension}</span>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </li>
-                            </template>
+    <template if:true={addSubEpic}>
+        <c-employee-create-sub-epic parent-task-record-id={recordId} user-sub-comp-id={subcompId}
+            show-allow-epic={isEpicCreationAllowed} onaddeventsuccess={handleAdd} oncancelevent={handleCancel}>
+        </c-employee-create-sub-epic>
     </template>
-</ul>
-<div style="text-align: center;">
-    <lightning-file-upload disabled={deactivate} class="file-upload forceContentRelatedListPreviewFileList" label="" name="fileUploader" record-id={recordId} onuploadfinished={handleUploadFinished} multiple>
-    </lightning-file-upload>
-</div>
-</div>
 
-<template if:true={moreRecords}>
-                    <a onclick={loadMore}>
-                        <div class="slds-card__footer">
-                            <template if:true={moreLoaded}>
-                                <span>View More</span>
-                            </template>
-<template if:false={moreLoaded}>
-                                <div style="position: relative; min-height:50px;">
-                                    <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
-                                </div>
-                            </template>
-</div>
-</a>
-</template>
-</lightning-card>
-</lightning-tab>
-</lightning-tabset>
-
-<br />
+<template if:true={showSubEpic}>
+        <lightning-card>
+            <c-employee-sub-task-list parent-id={recordId} sub-name={subName} comp-name={compName} program={program}
+                subcomp-id={subcompId} onprogressupdated={handleSubUpdate} title={title}
+                onsublistclose={subListCloseHandler}>
+            </c-employee-sub-task-list>
+        </lightning-card>
+    </template>
 
 <template if:true={showEdit}>
-        <c-employee-edit-task record-id={recordId} progress={progress} onclosemodalevent={handleCloseModal}
+        <c-employee-edit-task record-id={recordId} progress={progress} onclosemodalevent={handleCloseModal} has-sub-tasks={hasSubTasks}
             onupdateevent={handleUpdateTask}>
         </c-employee-edit-task>
     </template>
-
 </template>

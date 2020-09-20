@@ -3,6 +3,11 @@
         <c-show-report sc-id={SCId} onemptyreport={handleEmptyData}></c-show-report>
     </template>
 <template if:true={isSubTaskTrue}>
-        <c-show-sub-task-report parent-id={parentId} onemptyreport={handleEmptySubData}></c-show-sub-task-report>
+        <c-show-sub-task-report parent-id={parentId} program={program} onemptyreport={handleEmptySubData}></c-show-sub-task-report>
     </template>
+<template if:true={emptyData}>
+    <lightning-card>
+        <h3>No Active Epic Data Available for Report</h3>
+    </lightning-card>
+</template>
 </template>

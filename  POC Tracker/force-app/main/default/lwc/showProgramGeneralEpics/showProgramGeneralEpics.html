@@ -1,0 +1,64 @@
+<template>
+    <lightning-button onclick={showGeneralTasks} label={title}></lightning-button>
+    <template if:true={showTasks}>
+        <lightning-button onclick={closeGeneralTasks} label="Close"></lightning-button>
+        <div class="slds-split-view_container slds-is-open">
+            <button class="slds-button slds-button_icon slds-button_icon slds-split-view__toggle-button slds-is-open"
+                aria-controls="split-view-id" aria-expanded="true" title="Close Split View">
+                <svg class="slds-button__icon slds-button__icon_x-small" aria-hidden="true">
+                    <use xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#left"></use>
+                </svg>
+                <span class="slds-assistive-text">Close Split View</span>
+            </button>
+            <article aria-hidden="false" id="split-view-id"
+                class="slds-split-view slds-grid slds-grid_vertical slds-grow">
+                <header class="slds-split-view__header">
+                    <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_xx-small">
+                        <div class="slds-has-flexi-truncate">
+                            <div class="slds-media slds-media_center">
+                                <div class="slds-media__body">
+                                    <h1 class="slds-text-heading_small slds-text-color_default slds-p-right_x-small">
+                                        <button class="slds-button slds-button_reset slds-type-focus slds-truncate"
+                                            aria-haspopup="true" title={title}>
+                                            <span
+                                                class="slds-grid slds-has-flexi-truncate slds-grid_vertical-align-center">
+                                                <svg class="slds-button__icon slds-button__icon_right slds-no-flex"
+                                                    aria-hidden="true">
+                                                    <use xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#down">
+                                                    </use>
+                                                </svg>
+                                            </span>
+                                        </button>
+                                    </h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+            </article>
+            <lightning-card>
+                <ul class="slds-has-dividers_around-space">
+                    <article class="slds-tile slds-tile_board">
+                        <template if:true={programEpicList} for:each={programEpicList} for:item="task">
+                            <div class="slds-grid slds-grid_vertical" key={task.Id} draggable="true" data-item={task.Id}
+                                ondragstart={handleDragStart}>
+                                <div class="slds-p-top_x-small">
+                                    <ul aria-multiselectable="true" class="task-tile" role="listbox">
+                                        <li class="slds-item">
+                                            <article class="slds-tile slds-tile_board">
+                                                <div class="slds-tile__detail">
+                                                    <p class="slds-text-heading_medium" style="padding-left:10px">
+                                                        {task.Title__c}</p>
+                                                </div>
+                                            </article>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </template>
+</article>
+</ul>
+</lightning-card>
+</div>
+</template>
+</template>

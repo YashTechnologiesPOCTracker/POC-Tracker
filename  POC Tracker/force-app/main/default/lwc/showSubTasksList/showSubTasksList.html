@@ -1,83 +1,44 @@
 <template>
+    <!-- New Code -->
 
-    <!-- <div class="slds-m-around_medium">
-        <template if:true={subtaskList}>
-            <lightning-card title="Sub-Epics" icon-name="action:record">
-                <div slot="actions">
-                    <lightning-button label="Close" onclick={handleSubListClose}></lightning-button>
-                </div>
-                <lightning-datatable key-field="Id" data={subtaskList} columns={columns} hide-checkbox-column="true"
-                    onsave={handleSave} draft-values={draftValues} onrowaction={handleRowAction}
-                    show-row-number-column="false">
-                </lightning-datatable>
-                <div class="slds-m-around_medium">
-                    <p class="slds-m-vertical_medium content">
-                        <b> Displaying {startingRecord} to {endingRecord} of {totalRecountCount} Epics ;
-                            Page {page} of {totalPage}</b>
-                    </p>
-                    <c-paginator onprevious={previousHandler} onnext={nextHandler}></c-paginator>
-                </div>
-            </lightning-card>
-        </template>
-</div>
-<template if:true={showMessage}>
-        <lightning-card title={message}>
-        </lightning-card>
-    </template>
-<template if:true={error}>
-        {error}
-    </template>
+    <lightning-tabset>
+        <lightning-tab label="Active Sub Epics" value="1">
+            <div class="slds-m-around_medium">
+                <!-- <template if:true={subtaskList}> -->
+                <lightning-card title="Sub-Epics" icon-name="action:record" ondrop={dropElement} ondragover={allowDrop}>
+                    <div slot="actions">
+                        <lightning-button label="Close" onclick={handleSubListClose}></lightning-button>
+                    </div>
 
-<div class="slds-m-around_medium">
-    <template if:true={showEditTask}>
-            <c-edit-task record-id={recordId} onclosemodalevent={handleCloseModal} onupdateevent={handleUpdateTask}>
-            </c-edit-task>
-        </template>
-</div> -->
+                    <div class="widthCombobox slds-col  slds-wrap slds- slds-size_2-of-12 slds-p-left_medium">
+                        <lightning-combobox name="State Filter" label="State Filter" value={value}
+                            placeholder="Select State" options={options} onchange={handleChange}>
+                        </lightning-combobox>
+                    </div>
 
-<!-- <template if:false={isLead}>
-    <c-show-sub-task-detail record-id={recordId} onclosesubtaskdetail={handleCloseSubTask}></c-show-sub-task-detail>
-</template> -->
+                    <lightning-datatable key-field="Id" data={subtaskList} columns={columns} hide-checkbox-column="true"
+                        onsave={handleSave} draft-values={draftValues} onrowaction={handleRowAction}
+                        onsort={handleSortdata} sorted-by={sortBy} sorted-direction={sortDirection}>
+                    </lightning-datatable>
 
-<!-- New Code -->
-
-<lightning-tabset>
-    <lightning-tab label="Active Sub Epics" value="1">
-        <div class="slds-m-around_medium">
-            <template if:true={subtaskList}>
-                    <lightning-card title="Sub-Epics" icon-name="action:record"
-                    ondrop={dropElement} ondragover={allowDrop}>
-                        <div slot="actions">
-                            <lightning-button label="Close" onclick={handleSubListClose}></lightning-button>
-                        </div>
-                        <lightning-datatable 
-                            key-field="Id" 
-                            data={subtaskList} 
-                            columns={columns}
-                            hide-checkbox-column="true" 
-                            onsave={handleSave} 
-                            draft-values={draftValues}
-                            onrowaction={handleRowAction} 
-                            show-row-number-column="false">
-                        </lightning-datatable>
-                        <div class="slds-m-around_medium">
-                            <p class="slds-m-vertical_medium content">
-                                <b>Page {page} of {totalPage}</b>
-                            </p>
-                            <c-paginator onprevious={previousHandler} onnext={nextHandler}></c-paginator>
-                        </div>
-                    </lightning-card>
-                </template>
-            <template if:true={showMessage}>
+                    <div class="slds-m-around_medium">
+                        <p class="slds-m-vertical_medium content">
+                            <b>Page {page} of {totalPage}</b>
+                        </p>
+                        <c-paginator onprevious={previousHandler} onnext={nextHandler}></c-paginator>
+                    </div>
+                </lightning-card>
+                <!-- </template> -->
+<!-- <template if:true={showMessage}>
                     <lightning-card title={message}>
                     </lightning-card>
-                </template>
-        </div>
-    </lightning-tab>
+                </template> -->
+</div>
+</lightning-tab>
 
-    <lightning-tab label="Completed Sub Epics" value="2">
-        <div class="slds-m-around_medium">
-            <template if:true={completedSubtaskList}>
+<lightning-tab label="Completed Sub Epics" value="2">
+    <div class="slds-m-around_medium">
+        <template if:true={completedSubtaskList}>
                     <lightning-card title="Sub-Epics" icon-name="action:record">
                         <div slot="actions">
                             <lightning-button label="Close" onclick={handleSubListClose}></lightning-button>
@@ -94,12 +55,12 @@
                         </div>
                     </lightning-card>
                 </template>
-            <template if:true={showMessage1}>
+        <template if:true={showMessage1}>
                     <lightning-card title={message1}>
                     </lightning-card>
                 </template>
-        </div>
-    </lightning-tab>
+    </div>
+</lightning-tab>
 </lightning-tabset>
 
 
@@ -110,8 +71,8 @@
 
 <div class="slds-m-around_medium">
     <template if:true={showEditTask}>
-            <c-edit-task record-id={recordId} onclosemodalevent={handleCloseModal} onupdateevent={handleUpdateTask}>
-            </c-edit-task>
+            <c-edit-sub-task record-id={recordId} onclosemodalevent={handleCloseModal} onupdateevent={handleUpdateTask}>
+            </c-edit-sub-task>
         </template>
 </div>
 

@@ -1,5 +1,7 @@
 import { LightningElement, track, api, wire } from 'lwc';
 import generalTasks from '@salesforce/apex/taskController.getGeneralTasks'
+import { CurrentPageReference } from "lightning/navigation";
+import { registerListener, unregisterAllListeners } from "c/pubsub";
 
 export default class ShowGeneralTasks extends LightningElement {
     //@track taskList;
@@ -26,8 +28,22 @@ export default class ShowGeneralTasks extends LightningElement {
 
     @track ProgramAcceleratorList;
     @api recordId;
-    //@wire(generalTasks) taskList;
+    @wire(CurrentPageReference) pageRef;
     showTasks = false;
+    viewButton = false;
+
+    connectedCallback() {
+        registerListener("viewGeneralEpics", this.handleCall, this);
+    }
+
+    handleCall(detail) {
+        console.log("in handleCallback " + detail);
+        this.viewButton = true;
+    }
+
+    disconnectedCallback() {
+        unregisterAllListeners(this);
+    }
 
     @wire(generalTasks) getTaskList(result) {
         var acceleratorArray = [];

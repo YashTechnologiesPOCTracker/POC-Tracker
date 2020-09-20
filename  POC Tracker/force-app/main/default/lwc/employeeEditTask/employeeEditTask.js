@@ -5,6 +5,11 @@ export default class EmployeeEditTask extends LightningElement {
     @api recordId;
     @api progress;
     // @track userEnteredProgressValue = 0;
+    @api hasSubTasks;
+
+    connectedCallback() {
+        console.log('IN EMP EDIT EPIC ' + this.hasSubTasks);
+    }
 
     progressOnChange(event) {
         this.progress = event.target.value;
@@ -59,7 +64,7 @@ export default class EmployeeEditTask extends LightningElement {
             });
         }
 
-        const customEvent = new CustomEvent("updateevent");
+        const customEvent = new CustomEvent("updateevent", { detail: this.progress });
         this.dispatchEvent(customEvent);
     }
 

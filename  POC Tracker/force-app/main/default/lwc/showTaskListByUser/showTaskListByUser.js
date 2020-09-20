@@ -5,17 +5,19 @@ import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import { refreshApex } from "@salesforce/apex";
 import { CurrentPageReference, NavigationMixin } from "lightning/navigation";
 import { fireEvent, registerListener, unregisterAllListeners } from "c/pubsub";
-import { updateRecord } from "lightning/uiRecordApi";
+import { updateRecord, createRecord } from "lightning/uiRecordApi";
 import ID_FIELD from "@salesforce/schema/Tracker__c.Id";
 import TITLE_FIELD from "@salesforce/schema/Tracker__c.Title__c";
 import PROGRAM_FIELD from "@salesforce/schema/Tracker__c.Program__c";
 import ASSIGNED_TO_FIELD from "@salesforce/schema/Tracker__c.Assigned_To__c";
 import PROGRESS_FIELD from "@salesforce/schema/Tracker__c.Progress__c";
-import searchEpic from "@salesforce/apex/taskController.searchEpic";
+import START_DATE_FIELD from "@salesforce/schema/Tracker__c.Start_Date__c";
+import TARGET_DATE_FIELD from "@salesforce/schema/Tracker__c.Target_Date__c";
+import SUBCOMPID_FIELD from "@salesforce/schema/Tracker__c.Subsidiary_CompetencyId__c";
+import TRACKER_OBJECT from '@salesforce/schema/Tracker__c';
+import getTask from '@salesforce/apex/taskController.getTask';
 
 const actions = [
-    // { label: "Add Sub-Task", name: "add_sub_task" },
-    // { label: "Show Sub-Tasks", name: "show_sub_tasks" },
     { label: "View", name: "view" },
     { label: "Edit", name: "edit" },
     { label: "Delete", name: "delete" }
@@ -28,11 +30,13 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
     @api subcompId;
     showEditTask = false;
     showTaskDetail = false;
+    isDrop = false;
     recordId = '';
     refreshTable;
     error;
     message;
     showMessage = false;
+    showMessage1 = false;
     isAddEpic = false;
     isEmpty = false;
     //@track competencyDetail;
@@ -50,7 +54,7 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
     endingRecord = 0;
     pageSize = 5;
     totalRecountCount = 0;
-    totalPage = 0;
+    totalPage = 1;
     page1 = 1;
     items1 = [];
     items1 = [];
@@ -58,49 +62,55 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
     endingRecord1 = 0;
     pageSize1 = 5;
     totalRecountCount1 = 0;
-    totalPage1 = 0;
-
+    totalPage1 = 1;
+    taskArray = [];
     @track columns = [{
             label: "ID",
             fieldName: "Name",
-            initialWidth: 60
+            initialWidth: 60,
+            sortable: "true",
         },
         {
             label: "Title",
             fieldName: "Title",
             editable: true,
             initialWidth: 260,
+            sortable: "true",
         },
         {
             label: "Program",
             fieldName: "Program",
             initialWidth: 120,
+            sortable: "true",
             //editable: true
         },
-        // {
-        //     label: "Progress",
-        //     fieldName: "progress",
-        //     initialWidth: 100,
-        //     // editable: true
-        // },
+        {
+            label: "Progress",
+            fieldName: "progress",
+            initialWidth: 100,
+            sortable: "true",
+            // editable: true
+        },
         {
             label: "Start Date",
             fieldName: "startDate",
             initialWidth: 110,
-            //editable: true
+            editable: true,
+            sortable: "true",
         },
         {
             label: "Target Date",
             fieldName: "targetDate",
             initialWidth: 110,
-            //editable: true
+            editable: true,
+            sortable: "true",
         },
-        {
-            label: "Assigned To",
-            fieldName: "Assigned_To",
-            initialWidth: 110,
-            // editable: true
-        },
+        // {
+        //     label: "Assigned To",
+        //     fieldName: "Assigned_To",
+        //     initialWidth: 110,
+        //     // editable: true
+        // },
         {
             type: "action",
             typeAttributes: { rowActions: actions }
@@ -109,7 +119,7 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
 
 
     @wire(getTasks, { currentUserId: "$currentUserId", subcompId: '$subcompId' }) getTaskList(result) {
-        var taskArray = [];
+        this.taskArray = [];
         var completedTaskArray = [];
         this.refreshTable = result;
 
@@ -129,9 +139,9 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
                     newObject.targetDate = element.Target_Date__c;
                     newObject.progress = element.Progress__c;
                     newObject.state = element.State__c;
-                    if (element.Assigned_To__r.Name) {
-                        newObject.Assigned_To = element.Assigned_To__r.Name;
-                    }
+                    // if (element.Assigned_To__r.Name) {
+                    //     newObject.Assigned_To = element.Assigned_To__r.Name;
+                    // }
                     completedTaskArray.push(newObject);
                 } else {
                     let newObject = {};
@@ -143,39 +153,40 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
                     newObject.targetDate = element.Target_Date__c;
                     newObject.progress = element.Progress__c;
                     newObject.state = element.State__c;
-                    if (element.Assigned_To__r.Name) {
-                        newObject.Assigned_To = element.Assigned_To__r.Name;
-                    }
-                    taskArray.push(newObject);
+                    // if (element.Assigned_To__r.Name) {
+                    //     newObject.Assigned_To = element.Assigned_To__r.Name;
+                    // }
+                    this.taskArray.push(newObject);
                 }
             });
 
-            if (Array.isArray(taskArray) && taskArray.length) {
-                this.taskList = taskArray;
+            if (Array.isArray(this.taskArray) && this.taskArray.length) {
+                this.taskList = this.taskArray;
                 console.log('task list ' + JSON.stringify(this.taskList));
                 this.showMessage = false;
+                console.log('this.subcompId ' + this.subcompId);
                 fireEvent(this.pageRef, "selectedSubIdForReport", this.subcompId);
 
-                this.items = taskArray;
-                this.totalRecountCount = taskArray.length;
+                this.items = this.taskArray;
+                this.totalRecountCount = this.taskArray.length;
                 this.totalPage = Math.ceil(this.totalRecountCount / this.pageSize);
                 this.taskList = this.items.slice(0, this.pageSize);
+                this.ALL_CASES = this.items.slice(0, this.pageSize);
                 this.endingRecord = this.pageSize;
 
                 this.error = undefined;
                 // this.showDataReport();
             } else {
-                this.message = 'Could Not find any Task for the Requested Competency';
+                this.message = 'Could Not find any Epic for the Requested Competency';
                 this.showMessage = true;
                 this.taskList = undefined;
             }
-
 
             if (Array.isArray(completedTaskArray) && completedTaskArray.length) {
                 this.completedTaskList = completedTaskArray;
                 this.showMessage = false;
                 console.log('task list ' + JSON.stringify(this.completedTaskList))
-                fireEvent(this.pageRef, "selectedSubIdForReport", this.subcompId);
+                    //  fireEvent(this.pageRef, "selectedSubIdForReport", this.subcompId);
 
                 this.items1 = completedTaskArray;
                 this.totalRecountCount1 = completedTaskArray.length;
@@ -186,8 +197,8 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
                 this.error = undefined;
                 // this.showDataReport();
             } else {
-                this.message = 'Could Not find any Completed Task for the Requested Competency';
-                this.showMessage = true;
+                this.message = 'Could Not find any Completed Epic for the Requested Competency';
+                this.showMessage1 = true;
                 this.completedTaskList = undefined;
             }
         } else if (result.error) {
@@ -201,12 +212,13 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
 
 
     connectedCallback() {
-        console.log("currentUserId " + this.currentUserId);
-        console.log("subId " + this.subcompId);
-        console.log("selectedSubName " + this.selectedSubName);
-        console.log("selectedCompName " + this.selectedCompName);
-        console.log("competencyId " + this.competencyId);
-        console.log("SEARCH TEXT " + this.search);
+        // console.log("currentUserId " + this.currentUserId);
+        // console.log("subId " + this.subcompId);
+        // console.log("selectedSubName " + this.selectedSubName);
+        // console.log("selectedCompName " + this.selectedCompName);
+        // console.log("competencyId " + this.competencyId);
+        // console.log("SEARCH TEXT " + this.search);
+        fireEvent(this.pageRef, "viewGeneralEpics", true);
         registerListener("updateEpicTable", this.handle, this);
     }
 
@@ -219,13 +231,95 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
         unregisterAllListeners(this);
     }
 
+    //code for sorting and filter //
+    @track sortBy;
+    @track sortDirection;
+    ALL_CASES = [];
+    value = 'all';
+
+
+    get options() {
+        return [
+            { label: 'All', value: 'All' },
+            { label: 'Not Started', value: 'Not Started' },
+            { label: 'In-Progress', value: 'In-Progress' },
+            { label: 'On hold', value: 'On hold' },
+        ];
+    }
+
+    handleChange(event) {
+        // alert('in handle change')
+        const inputValue = event.detail.value;
+        // console.log('inputValue', inputValue);
+        const regex = new RegExp(`^${inputValue}`, 'i');
+        this.taskList = this.ALL_CASES.filter(row => regex.test(row.state));
+        if (!event.target.value) {
+            this.taskList = [...this.ALL_CASES];
+        } else if (inputValue === 'All') {
+            this.taskList = this.ALL_CASES;
+        }
+    }
+
+
+    updateColumnSorting(event) {
+        let fieldName = event.detail.fieldName;
+        let sortDirection = event.detail.sortDirection;
+        //assign the values
+        this.sortBy = fieldName;
+        this.sortDirection = sortDirection;
+        //call the custom sort method.
+        this.sortData(fieldName, sortDirection);
+    }
+
+
+    handleSortdata(event) {
+        // field name
+        this.sortBy = event.detail.fieldName;
+
+        // sort direction
+        this.sortDirection = event.detail.sortDirection;
+
+        // calling sortdata function to sort the data based on direction and selected field
+        // console.log('DAtA RAVISH DATA DATA =========');
+        this.sortData(event.detail.fieldName, event.detail.sortDirection);
+
+
+    }
+
+
+    sortData(fieldname, direction) {
+        // serialize the data before calling sort function
+        // console.log('DAtA RAVISH DATA DATA =========' + JSON.parse(JSON.stringify(this.taskList)));
+        let parseData = JSON.parse(JSON.stringify(this.taskList));
+
+
+        // Return the value stored in the field
+        let keyValue = (a) => {
+            return a[fieldname];
+        };
+        // cheking reverse direction 
+        let isReverse = direction === 'asc' ? 1 : -1;
+        // sorting data 
+        parseData.sort((x, y) => {
+            x = keyValue(x) ? keyValue(x) : ''; // handling null values
+            y = keyValue(y) ? keyValue(y) : '';
+
+            // sorting values based on direction
+            return isReverse * ((x > y) - (y > x));
+        });
+        // set the sorted data to data table data
+        this.taskList = parseData;
+    }
+
+    // sorting and filter code ends here //
+
     handleRowAction(event) {
         let actionName = event.detail.action.name;
         // console.log("actionName ====> " + actionName);
         let row = event.detail.row;
-        console.log('Row Data ' + JSON.stringify(row));
+        // console.log('Row Data ' + JSON.stringify(row));
         this.recordId = event.detail.row.Id;
-        console.log("Id " + this.recordId);
+        //console.log("Id " + this.recordId);
 
         let recordData = {};
         recordData.recordId = this.recordId;
@@ -240,7 +334,7 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
             case "view":
                 this.showEditTask = false;
                 // fireEvent(this.pageRef, 'subTaskReportChart', this.recordId);; // event for sub tasks report
-                console.log("Record data in from view detail " + JSON.stringify(recordData));
+                // console.log("Record data in from view detail " + JSON.stringify(recordData));
                 this[NavigationMixin.Navigate]({
                     type: 'comm__namedPage',
                     attributes: {
@@ -251,7 +345,7 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
                 break;
             case "edit":
                 this.showEditTask = true;
-                console.log("Record Id in from edit record " + this.recordId);
+                // console.log("Record Id in from edit record " + this.recordId);
                 break;
             case "delete":
                 this.showEditTask = false;
@@ -264,16 +358,16 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
 
     deleteTask(currentRow) {
         let currentRecord;
-        console.log("In delete task");
+        //console.log("In delete task");
 
         currentRecord = currentRow.Id;
-        console.log("currentRecord " + JSON.stringify(currentRecord));
+        // console.log("currentRecord " + JSON.stringify(currentRecord));
         delSelectedTask({ recordId: currentRow.Id })
             .then((result) => {
                 this.dispatchEvent(
                     new ShowToastEvent({
                         title: "Success!!",
-                        message: "Deleted",
+                        message: "Deleted Successfully",
                         variant: "success"
                     })
                 );
@@ -282,7 +376,7 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
                 return refreshApex(this.refreshTable);
             })
             .catch((error) => {
-                window.console.log("Error ====> " + JSON.stringify(error));
+                // console.log("Error ====> " + JSON.stringify(error));
                 this.dispatchEvent(
                     new ShowToastEvent({
                         title: "Error!!",
@@ -293,57 +387,207 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
             });
     }
 
-    handleSave(event) {
-        const fields = {};
-        fields[ID_FIELD.fieldApiName] = event.detail.draftValues[0].Id;
-        fields[TITLE_FIELD.fieldApiName] = event.detail.draftValues[0].Title;
-        fields[PROGRAM_FIELD.fieldApiName] = event.detail.draftValues[0].Program;
-        fields[PROGRESS_FIELD.fieldApiName] = event.detail.draftValues[0].progress;
-        fields[ASSIGNED_TO_FIELD.fieldApiName] =
-            event.detail.draftValues[0].Assigned_To;
+    @track array = [];
+    dropRecordId;
+    offset;
 
-        const recordInput = { fields };
-        updateRecord(recordInput)
-            .then(() => {
+    allowDrop(event) {
+        this.offset = 0;
+        event.preventDefault();
+        this.isDrop = true;
+        this.array = this.taskArray;
+        // console.log('Array in taskArray ' + JSON.stringify(this.taskArray));
+
+        this.taskArray.forEach(ele => {
+            if (ele.Id) {
+                this.offset++;
+            }
+        });
+        console.log('Offset ' + this.offset);
+        //console.log('Array in allowdrop ' + JSON.stringify(this.array));
+    }
+
+    dropElement(event) {
+        this.taskList = null;
+        let recordId = event.dataTransfer.getData('taskData');
+        //  console.log('Data recordId:', JSON.stringify(recordId));
+        getTask({ 'recordId': recordId })
+            .then(data => {
+                let obj = {}
+                console.log('New Data: ', JSON.stringify(data));
+                obj.Title = data.Title__c;
+                obj.startDate = data.Start_Date__c;
+                obj.targetDate = data.Target_Date__c;
+                obj.Program = data.Program__c;
+
+                this.array.push(obj);
+                //console.log('Array ' + JSON.stringify(this.array));
+                this.taskList = this.array;
+                //console.log('sub task list 1' + JSON.stringify(this.taskList));
+
+            })
+            .catch(error => {
+                console.log('Error ' + error.message);
+            });
+
+    }
+
+    search(Id, myArray) {
+        //console.log('Id ' + Id + ', Array: ' + JSON.stringify(myArray));
+        for (var i = 0; i < myArray.length; i++) {
+            //console.log('Here')
+            if (i == Id) {
+                console.log('Found ' + JSON.stringify(myArray[i]));
+                return myArray[i];
+            }
+        }
+    }
+
+    handleSave(event) {
+        // console.log('save clicked');
+        if (this.isDrop) {
+            const recordInputs = event.detail.draftValues.slice().map(draft => {
+                const editedfields = Object.assign({}, draft);
+
+                let index = parseInt(editedfields.Id.slice(4, 5));
+                // console.log('Index JSON----' + JSON.stringify(index));
+
+                let searchIndex = index + this.offset;
+                // console.log('Search at: ' + searchIndex);
+                var result = this.search(searchIndex, this.taskList);
+
+                editedfields.subcompId = this.subcompId;
+                editedfields.Title = result.Title;
+                editedfields.Program = result.Program;
+                if (!(editedfields.startDate)) {
+                    editedfields.startDate = result.startDate;
+                }
+                if (!(editedfields.targetDate)) {
+                    editedfields.targetDate = result.targetDate;
+                }
+
+                //console.log('Result' + JSON.stringify(result));
+                return { editedfields };
+            });
+
+            Promise.all(
+                recordInputs.map(recordInput => {
+                    const fields = {};
+
+                    fields[SUBCOMPID_FIELD.fieldApiName] = this.subcompId;
+                    fields[TITLE_FIELD.fieldApiName] = recordInput.editedfields.Title;
+                    fields[START_DATE_FIELD.fieldApiName] = recordInput.editedfields.startDate;
+                    fields[TARGET_DATE_FIELD.fieldApiName] = recordInput.editedfields.targetDate;
+                    fields[PROGRAM_FIELD.fieldApiName] = recordInput.editedfields.Program;
+
+                    // console.log('FIELDS : ' + JSON.stringify(fields));
+                    const record = { apiName: TRACKER_OBJECT.objectApiName, fields };
+                    return createRecord(record);
+                })).then(results => {
                 this.dispatchEvent(
                     new ShowToastEvent({
-                        title: "Success",
-                        message: "Task Updated",
-                        variant: "success"
+                        title: 'Success',
+                        message: 'Epics Created',
+                        variant: 'success'
+                    })
+                );
+                fireEvent(this.pageRef, 'updateReportChart', 'Updated');
+                this.draftValues = [];
+                this.isDrop = false;
+                return refreshApex(this.refreshTable);
+            }).catch(error => {
+                this.dispatchEvent(
+                    new ShowToastEvent({
+                        title: 'Error creating Epic record',
+                        message: error.body.message,
+                        variant: 'error'
+                    })
+                );
+            });
+            //return refreshApex(this.refreshTable);
+        } else if (!(this.isDrop)) {
+            //  console.log('In else if')
+
+            const recordInputs = event.detail.draftValues.slice().map(draft => {
+                const fields = Object.assign({}, draft);
+                //console.log('update record1 value ' + JSON.stringify(fields));
+                return { fields };
+            });
+
+            Promise.all(
+                recordInputs.map(recordInput => {
+                    const fields = {};
+                    fields[ID_FIELD.fieldApiName] = recordInput.fields.Id;
+                    fields[TITLE_FIELD.fieldApiName] = recordInput.fields.Title;
+                    fields[START_DATE_FIELD.fieldApiName] = recordInput.fields.startDate;
+                    fields[TARGET_DATE_FIELD.fieldApiName] = recordInput.fields.targetDate;
+                    const record = { fields };
+                    // console.log('update record value ' + JSON.stringify(fields));
+                    return updateRecord(record)
+                })
+            ).then(data => {
+                fireEvent(this.pageRef, 'updateReportChart', 'Updated');
+                this.dispatchEvent(
+                    new ShowToastEvent({
+                        title: 'Success',
+                        message: 'Epics Updated',
+                        variant: 'success'
                     })
                 );
                 this.draftValues = [];
-                fireEvent(this.pageRef, 'updateReportChart', 'Updated');
+
                 return refreshApex(this.refreshTable);
-            })
-            .catch((error) => {
+            }).catch(error => {
                 this.dispatchEvent(
                     new ShowToastEvent({
-                        title: "Error creating record",
+                        title: "Error Updating Epics",
                         message: error.body.message,
                         variant: "error"
                     })
                 );
             });
+        }
     }
+
+    // handleSave(event) {
+    //     const fields = {};
+    //     fields[ID_FIELD.fieldApiName] = event.detail.draftValues[0].Id;
+    //     fields[TITLE_FIELD.fieldApiName] = event.detail.draftValues[0].Title;
+    //     //fields[PROGRAM_FIELD.fieldApiName] = event.detail.draftValues[0].Program;
+    //     //fields[PROGRESS_FIELD.fieldApiName] = event.detail.draftValues[0].progress;
+    //     //fields[ASSIGNED_TO_FIELD.fieldApiName] =
+    //     //  event.detail.draftValues[0].Assigned_To;
+
+    //     const recordInput = { fields };
+    //     updateRecord(recordInput)
+    //         .then(() => {
+    //             this.dispatchEvent(
+    //                 new ShowToastEvent({
+    //                     title: "Success",
+    //                     message: "Task Updated",
+    //                     variant: "success"
+    //                 })
+    //             );
+    //             this.draftValues = [];
+    //             fireEvent(this.pageRef, 'updateReportChart', 'Updated');
+    //             return refreshApex(this.refreshTable);
+    //         })
+    //         .catch((error) => {
+    //             this.dispatchEvent(
+    //                 new ShowToastEvent({
+    //                     title: "Error creating record",
+    //                     message: error.body.message,
+    //                     variant: "error"
+    //                 })
+    //             );
+    //         });
+    // }
 
     // handleValue(event) {
     //     console.log('in handle value');
     //     this.search = event.target.value;
     // }
 
-    // handleSearch() {
-    //     console.log('in handle search ' + this.search);
-    //     searchEpic({ search: this.search })
-    //         .then(data => {
-    //             console.log('Search Result: ' + JSON.stringify(data));
-    //             this.taskList = data;
-    //         })
-    //         .catch(error => {
-    //             console.log('Error ' + error.message);
-    //         });
-
-    // }
 
     previousHandler() {
         if (this.page > 1) {

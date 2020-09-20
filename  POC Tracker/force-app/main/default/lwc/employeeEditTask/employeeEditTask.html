@@ -24,6 +24,14 @@
                     </div>
                     <div class="slds-grid slds-wrap">
                         <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning-output-field field-name="Client__c"></lightning-output-field>
+                        </span>
+                        <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning-output-field field-name="SubProgarms__c"></lightning-output-field>
+                        </span>
+                    </div>
+                    <div class="slds-grid slds-wrap">
+                        <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
                             <lightning-output-field field-name="Start_Date__c"></lightning-output-field>
                         </span>
                         <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
@@ -36,20 +44,20 @@
                         </span>
                         <span class="slds-size_1-of-2 slds-max-small-size_1-of-1 ">
                             <lightning-input-field field-name="Progress__c" type="number" min="0" max="100"
-                                formatter="percent" step="0.01" onchange={progressOnChange}></lightning-input-field>
+                                formatter="percent" step="0.01" onchange={progressOnChange} disabled={hasSubTasks}></lightning-input-field>
                         </span>  
                     </div>
                     <div class="slds-grid slds-wrap">
                         <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
                             <lightning-output-field field-name="Description__c"></lightning-output-field>
                         </span>
-                        <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <!-- <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
                             <div class="slds-progress-bar_circular">
                                 <div class="slds-progress-bar__value_success">
                                     <lightning-progress-bar value={progress} size="large"></lightning-progress-bar>
                                 </div>
                             </div>
-                        </span>
+                        </span> -->
                     </div>
                     <br />
 

@@ -68,23 +68,23 @@ export default class AddTask extends LightningElement {
         fireEvent(this.pageRef, 'updateReportChart', 'Updated');
     }
 
-    allowDrop(event) {
-        event.preventDefault();
-    }
+    // allowDrop(event) {
+    //     event.preventDefault();
+    // }
 
-    dropElement(event) {
-        this.recordId = event.dataTransfer.getData('taskData');
-        console.log('Data recordId:', JSON.stringify(this.recordId));
-        getTask({ 'recordId': this.recordId })
-            .then(data => {
-                console.log('Data:', JSON.stringify(data));
-                this.title = data.Title__c;
-                this.startDate = data.Start_Date__c;
-                this.targetDate = data.Target_Date__c;
-            })
-            .catch(error => {
-                console.log('Error ' + error.message);
-            });
-    }
+    // dropElement(event) {
+    //     this.recordId = event.dataTransfer.getData('taskData');
+    //     console.log('Data recordId:', JSON.stringify(this.recordId));
+    //     getTask({ 'recordId': this.recordId })
+    //         .then(data => {
+    //             console.log('Data:', JSON.stringify(data));
+    //             this.title = data.Title__c;
+    //             this.startDate = data.Start_Date__c;
+    //             this.targetDate = data.Target_Date__c;
+    //         })
+    //         .catch(error => {
+    //             console.log('Error ' + error.message);
+    //         });
+    // }
 
 }

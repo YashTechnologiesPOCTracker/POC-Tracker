@@ -62,8 +62,9 @@
 </lightning-card>
 </div>
 </template> -->
-
-<lightning-button onclick={showGeneralTasks} label="General Epics"></lightning-button>
+<template if:true={viewButton}>
+    <lightning-button onclick={showGeneralTasks} label="General Epics"></lightning-button>
+</template>
 <template if:true={showTasks}>
         <lightning-button onclick={closeGeneralTasks} label="Close"></lightning-button>
         <div class="slds-split-view_container slds-is-open">

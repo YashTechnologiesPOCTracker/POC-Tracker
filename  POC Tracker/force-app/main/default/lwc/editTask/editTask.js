@@ -1,9 +1,22 @@
 import { LightningElement, track, api, wire } from "lwc";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
+import { getRecord, getFieldValue } from 'lightning/uiRecordApi';
+import Client from '@salesforce/schema/Tracker__c.Client__c';
+
+
+
+const fields = [Client];
 
 export default class EditTask extends LightningElement {
     @api recordId;
     @api isEmpty;
+
+    @wire(getRecord, { recordId: '$recordId', fields })
+    tracker;
+
+    get client() {
+        return getFieldValue(this.tracker.data, Client);
+    }
 
 
     connectedCallback() {

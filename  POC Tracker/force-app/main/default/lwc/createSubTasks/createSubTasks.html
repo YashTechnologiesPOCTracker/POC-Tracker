@@ -3,7 +3,12 @@
     <!-- <lightning-card aria-label="Sub-Task Test">
         <lightning-button label="Add Sub-Task" onclick={handleButtonClick}></lightning-button>
     </lightning-card> -->
-    
+
+    <c-confirmation-dialog title='Confirmation Title' message='Creating a new Sub-Epic will Delete all previous progress, Are You Sure?' 
+        confirm-label='Add' cancel-label='Cancel' visible={isDialogVisible} original-message={originalMessage} 
+        name="confirmModal" onclick={handleAddSubEpicDialogue}>
+</c-confirmation-dialog>
+
     <template if:true={enableSubTask}>
         <lightning-card>
             <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
@@ -22,7 +27,8 @@
                         <lightning-record-edit-form object-api-name="Tracker__c" onsuccess={handleSuccess}>
                             <div class="slds-grid slds-wrap">
                                 <span class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-hide">
-                                    <lightning-input-field field-name="Subsidiary_CompetencyId__c" value={userSubCompId} disabled>
+                                    <lightning-input-field field-name="Subsidiary_CompetencyId__c" value={userSubCompId}
+                                        disabled>
                                     </lightning-input-field>
                                 </span>
                             </div>
@@ -31,7 +37,8 @@
                                     <lightning-input-field field-name="Title__c"></lightning-input-field>
                                 </span>
                                 <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
-                                    <lightning-input-field field-name="Program__c" required></lightning-input-field>
+                                    <lightning-input-field field-name="Program__c" value={program} disabled>
+                                    </lightning-input-field>
                                 </span>
                             </div>
                             <div class="slds-grid slds-wrap">
@@ -39,7 +46,7 @@
                                     <lightning-input-field field-name="State__c" required></lightning-input-field>
                                 </span>
                                 <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
-                                    <lightning-input-field field-name="Assigned_To__c"></lightning-input-field>
+                                    <lightning-input-field field-name="SubProgarms__c"></lightning-input-field>
                                 </span>
                             </div>
                             <div class="slds-grid slds-wrap">
@@ -52,8 +59,22 @@
                             </div>
                             <div class="slds-grid slds-wrap">
                                 <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                    <lightning-input-field field-name="Client__c" value={client} disabled={client}></lightning-input-field>
+                                </span>
+                                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                    <lightning-input-field field-name="Assigned_To__c"></lightning-input-field>
+                                </span>
+                            </div>
+                            <div class="slds-grid slds-wrap">
+                                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
                                     <lightning-input-field field-name="Description__c"></lightning-input-field>
                                 </span>
+                                <span class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                    <lightning-input-field field-name="Allow_Epic_Creation__c">
+                                    </lightning-input-field>
+                                </span>
+                            </div>
+                            <div class="slds-grid slds-wrap">
                                 <span class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-hide">
                                     <lightning-input-field field-name="Parent_Task__c" value={parentTaskRecordId}>
                                     </lightning-input-field>

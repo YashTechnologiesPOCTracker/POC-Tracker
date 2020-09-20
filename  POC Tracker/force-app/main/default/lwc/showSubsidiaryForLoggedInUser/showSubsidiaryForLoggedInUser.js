@@ -53,14 +53,14 @@ export default class ShowSubsidiaryForLoggedInUser extends LightningElement {
 
     connectedCallback() {
         let subdata = sessionStorage.getItem('updateSubTaskList');
-        console.log('SUBDATA ' + subdata);
+        // console.log('SUBDATA ' + subdata);
         if (subdata != null) {
             this.refreshPage();
         }
     }
 
     refreshPage() {
-        console.log('in refresh page');
+        // console.log('in refresh page');
         sessionStorage.removeItem('updateSubTaskList');
 
         // return refreshApex(this.refreshTable);
@@ -92,7 +92,7 @@ export default class ShowSubsidiaryForLoggedInUser extends LightningElement {
                 this.compitancyList = [];
                 this.isDataAvailable = false;
             }
-            console.log("competency " + JSON.stringify(this.competencyList));
+            //  console.log("competency " + JSON.stringify(this.competencyList));
         } else if (result.error) {
             this.error = result.error;
             this.competencyList = undefined;
@@ -103,7 +103,7 @@ export default class ShowSubsidiaryForLoggedInUser extends LightningElement {
         event.preventDefault();
         // this.selectedCompetencyId = event.target.dataset.id;
         this.selectedCompetencyName = event.target.dataset.name;
-        console.log('selectedCompetencyName ' + this.selectedCompetencyName);
+        //  console.log('selectedCompetencyName ' + this.selectedCompetencyName);
         this.isTaskTrue = true;
         this.isCompetencyTrue = false;
         //fireEvent(this.pageRef, "selectedSubIdForReport", this.selectedSubComp);
@@ -122,7 +122,7 @@ export default class ShowSubsidiaryForLoggedInUser extends LightningElement {
     }
 
     getSubsidiaryDetails() {
-        console.log("Here in getSubsidiary " + this.competencyId);
+        // console.log("Here in getSubsidiary " + this.competencyId);
         getSubsidiary({ competencyId: this.competencyId })
             .then((data) => {
                 let newArray = [];
@@ -135,9 +135,9 @@ export default class ShowSubsidiaryForLoggedInUser extends LightningElement {
                     newArray.push(newObj);
                 });
                 this.subsidiaryList = newArray;
-                console.log(
-                    "get Subsidiary Result " + JSON.stringify(this.subsidiaryList)
-                );
+                // console.log(
+                //     "get Subsidiary Result " + JSON.stringify(this.subsidiaryList)
+                // );
             })
             .catch((err) => {
                 console.log("Error " + err);
@@ -148,12 +148,12 @@ export default class ShowSubsidiaryForLoggedInUser extends LightningElement {
         event.preventDefault();
         this.selectedSubComp = event.target.dataset.id;
         this.selectedSubsidiaryName = event.target.dataset.name;
-        console.log(
-            "selectedSubComp " +
-            this.selectedSubComp +
-            "selectedSubsidiaryName " +
-            this.selectedSubsidiaryName
-        );
+        // console.log(
+        //     "selectedSubComp " +
+        //     this.selectedSubComp +
+        //     "selectedSubsidiaryName " +
+        //     this.selectedSubsidiaryName
+        // );
         this.isCompetencyTrue = true;
         this.isSubsidiaryTrue = false;
         this.isDataAvailable = true;
