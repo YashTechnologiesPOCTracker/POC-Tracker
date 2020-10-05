@@ -19,7 +19,7 @@ export default class ShowReport extends LightningElement {
         if (result) {
             console.log('result.data ' + JSON.stringify(result));
             this.profileName = result.data;
-            this.getReportData();
+            // this.getReportData();
         } else if (error) {
             console.log('Error ' + JSON.stringify(error.message));
         }
@@ -30,29 +30,11 @@ export default class ShowReport extends LightningElement {
 
         console.log('scID: ' + this.scId);
         registerListener("updateReportChart", this.handle, this);
-        //this.getReportData();
+        this.getReportData();
     }
 
 
-    // getProfileData() {
-    //     getProfile()
-    //         .then(data => {
-    //             this.profileName = data;
-    //             this.getReportData();
-    //         })
-    //         .catch(error => {
-    //             console.log('Error ' + error.message);
-    //         })
-    // }
-
-    // handleCallback(detail) {
-    //     console.log('detail id ' + detail);
-    //     this.scId = detail;
-    //     console.log('SC id ' + this.scId);
-    //     this.getReportData();
-    // }
-
-    handle() {
+    handle(detail) {
         console.log('in handle');
         this.getReportData();
     }
@@ -79,7 +61,7 @@ export default class ShowReport extends LightningElement {
                             this.updateChart(data[key].count, data[key].label);
                         }
                         this.isDataAvailable = true;
-                        console.log('scId get report ' + this.scId);
+                        //console.log('scId get report ' + this.scId);
                     }
                 } else {
                     const customEvent = new CustomEvent('emptyreport');

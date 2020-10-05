@@ -20,7 +20,7 @@ export default class ShowProgramGeneralEpics extends LightningElement {
     handleCall(detail) {
         console.log("in handleCallback " + detail);
         this.program = detail;
-        this.title = this.program + ' Epics';
+        this.title = this.program + ' Sub-Epic Library';
         this.getEpics();
     }
 

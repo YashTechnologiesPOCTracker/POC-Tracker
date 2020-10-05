@@ -10,6 +10,7 @@ import STATE_FIELD from "@salesforce/schema/Tracker__c.State__c";
 import PROGRESS_FIELD from "@salesforce/schema/Tracker__c.Progress__c";
 import IS_ESCALATED_FIELD from "@salesforce/schema/Tracker__c.isEscalated__c";
 import subtasks from "@salesforce/apex/taskController.listSubTask";
+import getSubTask from "@salesforce/apex/taskController.getSubTask";
 import getProfile from '@salesforce/apex/taskController.getUserProfile';
 
 export default class ShowSubTaskDetail extends NavigationMixin(LightningElement) {
@@ -50,8 +51,7 @@ export default class ShowSubTaskDetail extends NavigationMixin(LightningElement)
 
     connectedCallback() {
         this.index = 0;
-        this.Completed = 0;
-        this.NotCompleted = 0;
+
         let data = sessionStorage.getItem('subRecordData');
         let recordData = JSON.parse(data);
         this.recordId = recordData.recordId;
@@ -66,6 +66,7 @@ export default class ShowSubTaskDetail extends NavigationMixin(LightningElement)
         this.parentIdArray.push(this.parentId);
         this.completedArray.push(this.Completed);
         this.notCompletedArray.push(this.NotCompleted)
+            //this.subTaskForProgressUpdate(this.recordId);
         this.getCurrentTask(this.recordId);
         this.getProfileData();
     }
@@ -79,20 +80,20 @@ export default class ShowSubTaskDetail extends NavigationMixin(LightningElement)
         } else {
             this.onClose();
         }
-        console.log("selectedItemValue " + selectedItemValue);
+        // console.log("selectedItemValue " + selectedItemValue);
     }
 
     getCurrentTask(recId) {
         getTask({ recordId: recId })
             .then(data => {
-                console.log('Data getTask ' + JSON.stringify(data));
+                // console.log('Data getTask ' + JSON.stringify(data));
                 this.title = data.Title__c;
                 this.state = data.State__c;
                 this.progress = data.Progress__c;
                 this.program = data.Program__c;
                 this.subcompId = data.Subsidiary_CompetencyId__c;
                 this.parentTitle = data.Parent_Task__r.Title__c;
-                console.log('state:' + this.state + ' progress ' + this.progress + ' subcomp ' + this.subcompId);
+                // console.log('state:' + this.state + ' progress ' + this.progress + ' subcomp ' + this.subcompId);
                 if (this.state === 'Completed') {
                     // this.isDisabledReassign = true;
                     // this.isDisabledOverdue = true;
@@ -104,19 +105,18 @@ export default class ShowSubTaskDetail extends NavigationMixin(LightningElement)
                     // this.isDisabledClose = false;
                     this.isDisabled = false;
                 }
-                console.log('CURRENT COMPLETED TASKS ^^^^ ' + this.Completed + 'INDEX: ' + this.index);
+                // console.log('CURRENT COMPLETED TASKS ^^^^ ' + this.Completed + 'INDEX: ' + this.index);
                 // if (this.markedAsComplete == true && this.backClicked > 0) {
                 //     console.log('INCREMENTING PROGRESS');
                 //     this.Completed++;
                 //     this.markedAsComplete = false;
                 //     this.updateParent();
                 // }
-
+                this.subTaskForProgressUpdate(this.recordId);
                 fireEvent(this.pageRef, 'programNameForProgramGeneralEpics', this.program);
                 this.getSubsidiaryCompetency(this.subcompId);
-                this.getSubTask(this.recordId);
+                //this.getSubTask(this.recordId);
                 //this.onClose();
-
                 //const promise = this.template.querySelector("c-recursive-task-list").childCall();
             })
             .catch()
@@ -124,22 +124,65 @@ export default class ShowSubTaskDetail extends NavigationMixin(LightningElement)
 
     getSubsidiaryCompetency(subcompId) {
         getSubsidiaryCompetencyDetail({ subcompId: subcompId }).then(data => {
-            console.log("subcomp data " + JSON.stringify(data));
+            //console.log("subcomp data " + JSON.stringify(data));
             this.subName = data[0].Subsidiary_Name__r.Name;
             this.compName = data[0].Competency_Name__r.Name;
         }).catch()
     }
 
-    getSubTask(recId) {
-        subtasks({ parentId: recId })
+    // getSubTask(recId) {
+    //     subtasks({ parentId: recId })
+    //         .then(data => {
+    //             if (Array.isArray(data) && data.length) {
+    //                 console.log('Non-Empty Sub Task')
+    //                 this.hasSubTasks = true;
+    //             } else {
+    //                 this.hasSubTasks = false;
+    //                 console.log('Empty Sub Task')
+    //             }
+    //         })
+    //         .catch(error => {
+    //             console.log('Error ' + error.message);
+    //         });
+    // }
+
+    subTaskForProgressUpdate(recId) {
+        this.Completed = 0;
+        this.NotCompleted = 0;
+        getSubTask({ parentId: recId })
             .then(data => {
+                data.forEach(element => {
+                    if (element.State__c === 'Completed') {
+                        this.Completed++;
+                    } else {
+                        this.NotCompleted++;
+                    }
+                });
+
                 if (Array.isArray(data) && data.length) {
-                    console.log('Non-Empty Sub Task')
+                    //  console.log('Non-Empty Sub Task')
                     this.hasSubTasks = true;
+                    // console.log('Completed: ' + this.Completed);
+                    // console.log('NotCompleted: ' + this.NotCompleted);
+
+                    let total = (this.Completed + this.NotCompleted);
+                    let aggPercentage = (this.Completed / total) * 100;
+
+                    const fields = {};
+                    fields[ID_FIELD.fieldApiName] = this.recordId;
+                    fields[PROGRESS_FIELD.fieldApiName] = aggPercentage;
+
+                    const recordInput = { fields };
+                    updateRecord(recordInput)
+                        .then(() => {
+                            //  console.log('Progress Updated: Progress for RECORD ' + aggPercentage);
+                        })
+                        .catch((error) => {});
                 } else {
                     this.hasSubTasks = false;
-                    console.log('Empty Sub Task')
+                    // console.log('Empty Sub Task')
                 }
+
             })
             .catch(error => {
                 console.log('Error ' + error.message);
@@ -147,9 +190,9 @@ export default class ShowSubTaskDetail extends NavigationMixin(LightningElement)
     }
 
     handleRecursiveListCall(event) {
-        console.log('event details ' + event.detail);
+        //  console.log('event details ' + event.detail);
         let recordDetail = event.detail;
-        console.log('Recursive record details ' + recordDetail);
+        //  console.log('Recursive record details ' + recordDetail);
 
         this.recordIdArray.push(recordDetail.recordId);
         this.parentIdArray.push(recordDetail.parentId);
@@ -158,26 +201,26 @@ export default class ShowSubTaskDetail extends NavigationMixin(LightningElement)
         this.index++;
         // console.log('Recursive record details: recordIdArray Array Values ' + JSON.stringify(this.recordIdArray));
         // console.log('Recursive record details: parentIdArray Array Values ' + JSON.stringify(this.parentIdArray));
-        console.log('Recursive record details: CompletedArray Array Values ' + JSON.stringify(this.completedArray));
-        console.log('Recursive record details: notCompletedArray Array Values ' + JSON.stringify(this.notCompletedArray) +
-            ' index%%%%%%%%%%%%%% ' + this.index);
+        // console.log('Recursive record details: CompletedArray Array Values ' + JSON.stringify(this.completedArray));
+        // console.log('Recursive record details: notCompletedArray Array Values ' + JSON.stringify(this.notCompletedArray) +
+        //     ' index%%%%%%%%%%%%%% ' + this.index);
 
         this.recordId = recordDetail.recordId;
         this.parentId = recordDetail.parentId;
         this.Completed = recordDetail.Completed;
         this.NotCompleted = recordDetail.NotCompleted;
 
-        console.log('Current Recursive record details: Completed Value ' + this.Completed);
-        console.log('Current Recursive record details: NotCompleted Value ' + this.NotCompleted);
+        // console.log('Current Recursive record details: Completed Value ' + this.Completed);
+        // console.log('Current Recursive record details: NotCompleted Value ' + this.NotCompleted);
         this.total = this.Completed + this.NotCompleted;
-        console.log(this.total);
+        //console.log(this.total);
         this.showSubEpic = false;
         this.getCurrentTask(this.recordId);
     }
 
     handleRecursiveBack() {
         this.index--;
-        console.log('back clicked handle recursive back ???????? ' + this.backClicked);
+        //console.log('back clicked handle recursive back ???????? ' + this.backClicked);
         // console.log('Recursive record details: recordIdArray Array Values ' + JSON.stringify(this.recordIdArray));
         // console.log('Recursive record details: parentIdArray Array Values ' + JSON.stringify(this.parentIdArray));
         // console.log('Recursive record details: CompletedArray Array Values ' + JSON.stringify(this.completedArray));
@@ -198,15 +241,15 @@ export default class ShowSubTaskDetail extends NavigationMixin(LightningElement)
         this.NotCompleted = this.notCompletedArray.pop();
         this.showSubEpic = false;
         this.total = this.Completed + this.NotCompleted;
-        console.log('r id: ' + this.recordId + ', p id: ' + this.parentId + 'Total ' + this.total);
+        //console.log('r id: ' + this.recordId + ', p id: ' + this.parentId + 'Total ' + this.total);
 
         // console.log('Recursive record details: recordIdArray Array Values after ' + JSON.stringify(this.recordIdArray));
         // console.log('Recursive record details: parentIdArray Array Values after ' + JSON.stringify(this.parentIdArray));
-        console.log('Recursive record details: CompletedArray Array Values after ' + JSON.stringify(this.completedArray));
-        console.log('Recursive record details: notCompletedArray Array Values after ' + JSON.stringify(this.notCompletedArray) + ' index%% ' + this.index);
+        // console.log('Recursive record details: CompletedArray Array Values after ' + JSON.stringify(this.completedArray));
+        // console.log('Recursive record details: notCompletedArray Array Values after ' + JSON.stringify(this.notCompletedArray) + ' index%% ' + this.index);
 
-        console.log('Current Recursive record details: Completed Value ' + this.Completed);
-        console.log('Current Recursive record details: NotCompleted Value ' + this.NotCompleted);
+        // console.log('Current Recursive record details: Completed Value ' + this.Completed);
+        // console.log('Current Recursive record details: NotCompleted Value ' + this.NotCompleted);
 
         this.getCurrentTask(this.recordId);
     }
@@ -217,7 +260,7 @@ export default class ShowSubTaskDetail extends NavigationMixin(LightningElement)
     }
 
     handleAdd() {
-        console.log("Saved Success");
+        //  console.log("Saved Success");
         fireEvent(this.pageRef, 'recSubTaskAdded', 'Refresh Apex in rec. list')
         this.addSubEpic = false;
     }
@@ -246,7 +289,7 @@ export default class ShowSubTaskDetail extends NavigationMixin(LightningElement)
 
     onOverdue() {
         //this.getCurrentTask(this.recordId);
-        console.log('state:' + this.state);
+        //  console.log('state:' + this.state);
         if (!(this.state === 'Completed')) {
             const fields = {};
             fields[ID_FIELD.fieldApiName] = this.recordId;
@@ -368,9 +411,9 @@ export default class ShowSubTaskDetail extends NavigationMixin(LightningElement)
         //let total = this.Completed + this.NotCompleted;
         let p = (this.Completed / (this.total)) * 100;
         let aggregateProgress = p.toFixed(2)
-        console.log('this.Completed: ' + this.Completed)
-        console.log('Total: ' + (this.total))
-        console.log('Agg Progress: ' + aggregateProgress)
+            // console.log('this.Completed: ' + this.Completed)
+            // console.log('Total: ' + (this.total))
+            // console.log('Agg Progress: ' + aggregateProgress)
 
         fields[ID_FIELD.fieldApiName] = this.parentId;
         fields[PROGRESS_FIELD.fieldApiName] = aggregateProgress;
@@ -386,7 +429,7 @@ export default class ShowSubTaskDetail extends NavigationMixin(LightningElement)
 
     handleUpdateTask() {
         this.showEdit = false;
-        console.log('here in edit ' + this.recordId);
+        //console.log('here in edit ' + this.recordId);
         this.getCurrentTask(this.recordId);
         //this.updateEditProgress();
         fireEvent(this.pageRef, "updateReportChart", "Updated");
@@ -418,17 +461,19 @@ export default class ShowSubTaskDetail extends NavigationMixin(LightningElement)
         getProfile()
             .then(data => {
                 this.profileName = data;
-                console.log('profileName in subreport ' + this.profileName);
+                //  console.log('profileName in subreport ' + this.profileName);
             })
             .catch(error => {
                 console.log('Error ' + error);
             })
     }
 
+    isLead = false;
     handleSubEpicBack() {
         // fireEvent(this.pageRef, "updateSubTask", "update");
-        console.log('Back clicked reload page')
+        //console.log('Back clicked reload page')
         if (this.profileName === 'Lead') {
+            this.isLead = true;
             this[NavigationMixin.Navigate]({
                 type: 'comm__namedPage',
                 attributes: {
@@ -436,6 +481,7 @@ export default class ShowSubTaskDetail extends NavigationMixin(LightningElement)
                 }
             });
         } else if ('Community Employee') {
+            this.isLead = false;
             this[NavigationMixin.Navigate]({
                 type: 'comm__namedPage',
                 attributes: {
@@ -445,7 +491,7 @@ export default class ShowSubTaskDetail extends NavigationMixin(LightningElement)
         }
 
         sessionStorage.setItem('updateSubTaskList', 'updatefromsubdetail');
-        console.log('Back Clicked')
+        // console.log('Back Clicked')
     }
 
 }

@@ -37,7 +37,7 @@ export default class ShowGeneralTasks extends LightningElement {
     }
 
     handleCall(detail) {
-        console.log("in handleCallback " + detail);
+        console.log("in general epic handleCallback " + detail);
         this.viewButton = true;
     }
 
@@ -58,13 +58,13 @@ export default class ShowGeneralTasks extends LightningElement {
         if (result.data) {
             let newData;
             newData = result.data;
-            console.log('Task Data:::::: ----- ' + JSON.stringify(newData));
+            // console.log('Task Data:::::: ----- ' + JSON.stringify(newData));
             newData.forEach(element => {
 
 
                 var programStatus = element.Program__c;
 
-                console.log(' programStatus TYPE TYPE:::::: ----- ' + programStatus);
+                // console.log(' programStatus TYPE TYPE:::::: ----- ' + programStatus);
 
                 if (element.Program__c === 'Accelerator') {
                     let newObject = {};
@@ -182,7 +182,7 @@ export default class ShowGeneralTasks extends LightningElement {
 
 
                 } else if (element.Program__c === 'Training') {
-                    console.log('INSIDE MOVE TRINING');
+                    //console.log('INSIDE MOVE TRINING');
                     let newObject = {};
                     newObject.Id = element.Id;
                     newObject.Name = element.Name;
@@ -216,9 +216,9 @@ export default class ShowGeneralTasks extends LightningElement {
     }
 
     handleDragStart(event) {
-        console.log('task list ======== ' + JSON.stringify(this.taskList));
+        // console.log('task list ======== ' + JSON.stringify(this.taskList));
         let newData = event.target.dataset.item;
-        console.log('Id: ' + JSON.stringify(newData));
+        // console.log('Id: ' + JSON.stringify(newData));
         event.dataTransfer.setData('taskData', newData);
     }
 

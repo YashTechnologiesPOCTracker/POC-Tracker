@@ -79,6 +79,15 @@ public without sharing class taskController {
         return listofsubtasks;                                
     }
 
+    @AuraEnabled
+    public static List<Tracker__c> getSubTask(String parentId){
+        System.debug('Parent Id ' + parentId);
+        List<Tracker__c> listofsubtasks = [select Id, Name, Program__c, Title__c, State__c, Progress__c, Assigned_To__r.Name from 
+                                        Tracker__c where Parent_Task__r.Id =: parentId];
+        System.debug('sub tasks list ' + listofsubtasks);
+        return listofsubtasks;                                
+    }
+
     @AuraEnabled(cacheable=true)
     public static List<Tracker__c> getTasksByUser(String currentUserId, String subcompId) {
         system.debug('userId ' + currentUserId);

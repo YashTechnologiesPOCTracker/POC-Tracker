@@ -235,7 +235,7 @@ export default class ShowTaskDetail extends NavigationMixin(LightningElement) {
         this[NavigationMixin.Navigate]({
             type: 'comm__namedPage',
             attributes: {
-                name: 'Home'
+                name: 'taskList__c'
             }
         });
         sessionStorage.setItem('updateSubTaskList', 'updatefromsubdetail');

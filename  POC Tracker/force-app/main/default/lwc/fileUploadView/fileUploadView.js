@@ -4,7 +4,7 @@ import getRelatedFiles from '@salesforce/apex/FilePreviewController.getRelatedFi
 
 export default class FileUploadView extends LightningElement {
     @api label;
-    @api formats = '.png,.pdf';
+    @api formats = '.png,.gif,.jpg,.png,.pdf,.docx,.ppt,.pptx,.xls,.xlsx ';
     @api recordId;
     @api deactivate;
 

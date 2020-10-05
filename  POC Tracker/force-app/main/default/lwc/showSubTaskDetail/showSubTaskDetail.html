@@ -95,7 +95,7 @@
             <lightning-button-menu alternative-text="Show menu" onselect={handleSelect} disabled={isDisabled}>
                 <lightning-menu-item prefix-icon-name="utility:change_owner" label="Reassign" value="reassign">
                 </lightning-menu-item>
-                <lightning-menu-item prefix-icon-name="utility:error" label="Escalate" value="escalate">
+                <lightning-menu-item prefix-icon-name="utility:error" label="Escalate" value="escalate" if:false={isLead}>
                 </lightning-menu-item>
                 <lightning-menu-item prefix-icon-name="utility:success" label="Mark as Complete" value="close">
                 </lightning-menu-item>

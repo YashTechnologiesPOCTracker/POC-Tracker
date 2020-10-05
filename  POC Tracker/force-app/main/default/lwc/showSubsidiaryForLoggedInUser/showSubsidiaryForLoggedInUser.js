@@ -2,11 +2,9 @@ import { LightningElement, wire, track } from "lwc";
 import getCompetency from "@salesforce/apex/taskController.getPTGNameForLoggedInUser";
 import getSubsidiary from "@salesforce/apex/taskController.getSubsidiaryByCompitencyId";
 import userId from "@salesforce/user/Id";
-import { CurrentPageReference } from "lightning/navigation";
-import { fireEvent } from "c/pubsub";
-import { refreshApex } from "@salesforce/apex";
+import { CurrentPageReference, NavigationMixin } from "lightning/navigation";
 
-export default class ShowSubsidiaryForLoggedInUser extends LightningElement {
+export default class ShowSubsidiaryForLoggedInUser extends NavigationMixin(LightningElement) {
     selectedSubComp;
     competencyId;
     leadName;
@@ -22,50 +20,15 @@ export default class ShowSubsidiaryForLoggedInUser extends LightningElement {
     @track subsidiaryList;
     @track competencyList;
     @wire(CurrentPageReference) pageRef;
-    // @wire(getSubsidiary) subsidiaryList;
 
-    // search(IdKey, myArray) {
-    //     for (var i = 0; i < myArray.length; i++) {
-    //         if (myArray[i].SCId === IdKey) {
-    //             console.log('Found ' + JSON.stringify(myArray[i]));
-    //             return myArray[i];
-    //         }
-    //     }
-    // }
-
-    // getCompetencyDetails() {
-    //     getCompetency({ currentUserId: this.currentUserId })
-    //         .then((data) => {
-    //             this.competencyId = data[0].Id;
-    //             this.competencyName = data[0].Name;
-    //             this.leadName = data[0].Lead_Name__r.Name;
-    //             console.log(
-    //                 "get Competency Result " + JSON.stringify(this.competencyId + ' ' + this.competencyName + ' ' + this.leadName)
-    //             );
-    //             this.competencyList = data;
-    //             this.getSubsidiaryDetails();
-    //         })
-    //         .catch((err) => {
-    //             console.log("Error " + err);
-    //         });
-
-    // }
 
     connectedCallback() {
-        let subdata = sessionStorage.getItem('updateSubTaskList');
-        // console.log('SUBDATA ' + subdata);
-        if (subdata != null) {
-            this.refreshPage();
+        let backValue = sessionStorage.getItem('epicbackclicked');
+        if (backValue != null) {
+            this.handleBackCompetency(backValue);
         }
     }
 
-    refreshPage() {
-        // console.log('in refresh page');
-        sessionStorage.removeItem('updateSubTaskList');
-
-        // return refreshApex(this.refreshTable);
-        window.location.reload()
-    }
 
     @wire(getCompetency, { currentUserId: "$currentUserId" }) getCompetencyList(
         result
@@ -100,13 +63,26 @@ export default class ShowSubsidiaryForLoggedInUser extends LightningElement {
     }
 
     handleCompetencyClick(event) {
-        event.preventDefault();
-        // this.selectedCompetencyId = event.target.dataset.id;
+
         this.selectedCompetencyName = event.target.dataset.name;
-        //  console.log('selectedCompetencyName ' + this.selectedCompetencyName);
-        this.isTaskTrue = true;
-        this.isCompetencyTrue = false;
-        //fireEvent(this.pageRef, "selectedSubIdForReport", this.selectedSubComp);
+
+        let taskData = {};
+        taskData.subcompId = this.selectedSubComp;
+        taskData.compId = this.competencyId;
+        taskData.currentUserId = this.currentUserId;
+        taskData.subName = this.selectedSubsidiaryName;
+        taskData.compName = this.selectedCompetencyName;
+
+        console.log('task detail ' + taskData)
+        sessionStorage.setItem('taskData', JSON.stringify(taskData));
+
+        this[NavigationMixin.Navigate]({
+            type: 'comm__namedPage',
+            attributes: {
+                name: 'taskList__c'
+            }
+        });
+
     }
 
     handleCompetencyBack(event) {
@@ -116,9 +92,17 @@ export default class ShowSubsidiaryForLoggedInUser extends LightningElement {
         // this.dispatchEvent(customEvent);
     }
 
-    handleBackCompetency() {
+    handleBackCompetency(value) {
+        let data = JSON.parse(value);
         this.isCompetencyTrue = true;
+        this.isSubsidiaryTrue = false;
         this.isTaskTrue = false;
+
+        this.selectedSubsidiaryName = data.subName;
+        this.selectedSubComp = data.subcompId;
+
+        sessionStorage.removeItem('epicbackclicked');
+        console.log('selectedSubsidiaryName ' + this.selectedSubsidiaryName + ' subcompId ' + this.selectedSubComp)
     }
 
     getSubsidiaryDetails() {

@@ -31,22 +31,18 @@
                     </div>
 
                     <lightning-datatable key-field="Id" data={taskList} columns={columns} hide-checkbox-column="true"
-                        onsave={handleSave} draft-values={draftValues} onrowaction={handleRowAction}
-                        onsort={handleSortdata} sorted-by={sortBy} sorted-direction={sortDirection}>
+                    show-row-number-column="false" onsave={handleSave} draft-values={draftValues} onrowaction={handleRowAction}
+                    onsort={handleSortdata} sorted-by={sortBy} sorted-direction={sortDirection}>
                     </lightning-datatable>
 
                     <div class="slds-m-around_medium">
                         <p class="slds-m-vertical_medium content">
                             <b>Page {page} of {totalPage}</b>
                         </p>
-                        <c-paginator onprevious={previousHandler} onnext={nextHandler}></c-paginator>
+                        <c-paginator onprevious={previousHandler} onnext={nextHandler} disabled-previous={disablePrevious}
+                        disabled-next={disableNext}></c-paginator>
                     </div>
                 </lightning-card>
-            <!-- </template> -->
-<!-- <template if:true={showMessage}>
-                <lightning-card title={message}>
-                </lightning-card>
-            </template> -->
 </lightning-tab>
 
 <lightning-tab label="Completed Epics" value="2">
@@ -65,21 +61,22 @@
         <template if:true={completedTaskList}>
                     <lightning-datatable key-field="Id" data={completedTaskList} columns={columns}
                         hide-checkbox-column="true" onsave={handleSave} draft-values={draftValues}
-                        onrowaction={handleRowAction} show-row-number-column="false">
+                        onrowaction={handleRowAction} show-row-number-column="true">
                     </lightning-datatable>
 
                     <div class="slds-m-around_medium">
                         <p class="slds-m-vertical_medium content">
                             <b>Page {page1} of {totalPage1}</b>
                         </p>
-                        <c-paginator onprevious={previousHandler1} onnext={nextHandler1}></c-paginator>
+                        <c-paginator onprevious={previousHandler1} onnext={nextHandler1} disabled-previous={disablePrevious}
+                        disabled-next={disableNext}></c-paginator>
                     </div>
                 </template>
-        <template if:true={showMessage1}>
+<template if:true={showMessage1}>
                     <lightning-card title={message}>
                     </lightning-card>
                 </template>
-    </lightning-card>
+</lightning-card>
 </lightning-tab>
 </lightning-tabset>
 <template if:true={error}>

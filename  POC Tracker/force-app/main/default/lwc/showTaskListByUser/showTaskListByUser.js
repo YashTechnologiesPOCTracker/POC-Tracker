@@ -20,14 +20,17 @@ import getTask from '@salesforce/apex/taskController.getTask';
 const actions = [
     { label: "View", name: "view" },
     { label: "Edit", name: "edit" },
-    { label: "Delete", name: "delete" }
+    // { label: "Delete", name: "delete" }
 ];
 
 export default class ShowTaskListByUser extends NavigationMixin(LightningElement) {
-    @api currentUserId;
+    //@api 
+    currentUserId;
     // @api subsidiaryId;
-    @api competencyId;
-    @api subcompId;
+    //@api 
+    competencyId;
+    //@api 
+    subcompId;
     showEditTask = false;
     showTaskDetail = false;
     isDrop = false;
@@ -40,8 +43,10 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
     isAddEpic = false;
     isEmpty = false;
     //@track competencyDetail;
-    @api selectedSubName;
-    @api selectedCompName;
+    //@api 
+    selectedSubName;
+    //@api 
+    selectedCompName;
     @track taskList;
     @track completedTaskList;
     @wire(CurrentPageReference) pageRef;
@@ -64,6 +69,8 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
     totalRecountCount1 = 0;
     totalPage1 = 1;
     taskArray = [];
+    disablePrevious = false;
+    disableNext = false;
     @track columns = [{
             label: "ID",
             fieldName: "Name",
@@ -117,12 +124,44 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
         }
     ];
 
+    connectedCallback() {
+        // console.log("currentUserId " + this.currentUserId);
+        // console.log("subId " + this.subcompId);
+        // console.log("selectedSubName " + this.selectedSubName);
+        // console.log("selectedCompName " + this.selectedCompName);
+        // console.log("competencyId " + this.competencyId);
+        // console.log("SEARCH TEXT " + this.search);
+
+        let taskData = sessionStorage.getItem('taskData');
+        let newData = JSON.parse(taskData);
+        this.subcompId = newData.subcompId;
+        this.competencyId = newData.compId;
+        this.currentUserId = newData.currentUserId;
+        this.selectedSubName = newData.subName;
+        this.selectedCompName = newData.compName;
+        //console.log('new Data: ' + JSON.stringify(newData));
+
+        let subdata = sessionStorage.getItem('updateSubTaskList');
+        // console.log('SUBDATA ' + subdata);
+        if (subdata != null) {
+            this.refreshPage();
+        }
+        registerListener("updateEpicTable", this.handle, this);
+    }
+
+    refreshPage() {
+        // console.log('in refresh page');
+        sessionStorage.removeItem('updateSubTaskList');
+
+        // return refreshApex(this.refreshTable);
+        window.location.reload()
+    }
 
     @wire(getTasks, { currentUserId: "$currentUserId", subcompId: '$subcompId' }) getTaskList(result) {
         this.taskArray = [];
         var completedTaskArray = [];
         this.refreshTable = result;
-
+        fireEvent(this.pageRef, "viewGeneralEpics", true);
         if (result.data) {
             let newData;
             newData = result.data;
@@ -162,18 +201,24 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
 
             if (Array.isArray(this.taskArray) && this.taskArray.length) {
                 this.taskList = this.taskArray;
-                console.log('task list ' + JSON.stringify(this.taskList));
+                //console.log('task list ' + JSON.stringify(this.taskList));
                 this.showMessage = false;
-                console.log('this.subcompId ' + this.subcompId);
+                //console.log('this.subcompId ' + this.subcompId);
                 fireEvent(this.pageRef, "selectedSubIdForReport", this.subcompId);
 
                 this.items = this.taskArray;
                 this.totalRecountCount = this.taskArray.length;
                 this.totalPage = Math.ceil(this.totalRecountCount / this.pageSize);
                 this.taskList = this.items.slice(0, this.pageSize);
+                //disable previous
+                this.disablePrevious = true;
+                //console.log('disable previous ' + this.disablePrevious)
                 this.ALL_CASES = this.items.slice(0, this.pageSize);
                 this.endingRecord = this.pageSize;
-
+                console.log('this.totalPage ' + this.totalPage)
+                    // if (this.totalPage === 1) {
+                    //     this.disableNext = true;
+                    // }
                 this.error = undefined;
                 // this.showDataReport();
             } else {
@@ -185,13 +230,19 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
             if (Array.isArray(completedTaskArray) && completedTaskArray.length) {
                 this.completedTaskList = completedTaskArray;
                 this.showMessage = false;
-                console.log('task list ' + JSON.stringify(this.completedTaskList))
-                    //  fireEvent(this.pageRef, "selectedSubIdForReport", this.subcompId);
+                //console.log('task list ' + JSON.stringify(this.completedTaskList))
+                //fireEvent(this.pageRef, "selectedSubIdForReport", this.subcompId);
 
                 this.items1 = completedTaskArray;
                 this.totalRecountCount1 = completedTaskArray.length;
                 this.totalPage1 = Math.ceil(this.totalRecountCount1 / this.pageSize1);
                 this.completedTaskList = this.items1.slice(0, this.pageSize1);
+                //disable previous
+                this.disablePrevious = true;
+                console.log('this.totalPage1 ' + this.totalPage1)
+                    // if (this.totalPage1 === 1) {
+                    //     this.disableNext = true;
+                    // }
                 this.endingRecord1 = this.pageSize1;
 
                 this.error = undefined;
@@ -206,20 +257,6 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
             this.taskList = undefined;
             this.completedTaskList = undefined;
         }
-    }
-
-
-
-
-    connectedCallback() {
-        // console.log("currentUserId " + this.currentUserId);
-        // console.log("subId " + this.subcompId);
-        // console.log("selectedSubName " + this.selectedSubName);
-        // console.log("selectedCompName " + this.selectedCompName);
-        // console.log("competencyId " + this.competencyId);
-        // console.log("SEARCH TEXT " + this.search);
-        fireEvent(this.pageRef, "viewGeneralEpics", true);
-        registerListener("updateEpicTable", this.handle, this);
     }
 
 
@@ -288,7 +325,6 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
 
 
     sortData(fieldname, direction) {
-        // serialize the data before calling sort function
         // console.log('DAtA RAVISH DATA DATA =========' + JSON.parse(JSON.stringify(this.taskList)));
         let parseData = JSON.parse(JSON.stringify(this.taskList));
 
@@ -549,67 +585,45 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
         }
     }
 
-    // handleSave(event) {
-    //     const fields = {};
-    //     fields[ID_FIELD.fieldApiName] = event.detail.draftValues[0].Id;
-    //     fields[TITLE_FIELD.fieldApiName] = event.detail.draftValues[0].Title;
-    //     //fields[PROGRAM_FIELD.fieldApiName] = event.detail.draftValues[0].Program;
-    //     //fields[PROGRESS_FIELD.fieldApiName] = event.detail.draftValues[0].progress;
-    //     //fields[ASSIGNED_TO_FIELD.fieldApiName] =
-    //     //  event.detail.draftValues[0].Assigned_To;
-
-    //     const recordInput = { fields };
-    //     updateRecord(recordInput)
-    //         .then(() => {
-    //             this.dispatchEvent(
-    //                 new ShowToastEvent({
-    //                     title: "Success",
-    //                     message: "Task Updated",
-    //                     variant: "success"
-    //                 })
-    //             );
-    //             this.draftValues = [];
-    //             fireEvent(this.pageRef, 'updateReportChart', 'Updated');
-    //             return refreshApex(this.refreshTable);
-    //         })
-    //         .catch((error) => {
-    //             this.dispatchEvent(
-    //                 new ShowToastEvent({
-    //                     title: "Error creating record",
-    //                     message: error.body.message,
-    //                     variant: "error"
-    //                 })
-    //             );
-    //         });
-    // }
-
-    // handleValue(event) {
-    //     console.log('in handle value');
-    //     this.search = event.target.value;
-    // }
-
 
     previousHandler() {
+        this.disableNext = false;
         if (this.page > 1) {
+            this.disablePrevious = false;
+            //console.log('disable previous: not equal' + this.disablePrevious)
             this.page = this.page - 1;
             this.displayRecordPerPage(this.page);
         }
     }
 
     nextHandler() {
+        this.disablePrevious = false;
         if ((this.page < this.totalPage) && this.page !== this.totalPage) {
             this.page = this.page + 1;
+            this.disableNext = false;
+            console.log('disable next: not equal' + this.disableNext + this.page + this.totalPage)
             this.displayRecordPerPage(this.page);
         }
     }
 
     displayRecordPerPage(page) {
+        if (this.page == 1) {
+            this.disablePrevious = true;
+            //console.log('disable previous: equal' + this.disablePrevious)
+        }
+        if (this.page === this.totalPage) {
+            this.disableNext = true;
+            console.log('disable next: equal' + this.disableNext)
+        }
+
         this.startingRecord = ((page - 1) * this.pageSize);
         this.endingRecord = (this.pageSize * page);
         this.endingRecord = (this.endingRecord > this.totalRecountCount) ?
             this.totalRecountCount : this.endingRecord;
 
         this.taskList = this.items.slice(this.startingRecord, this.endingRecord);
+        this.ALL_CASES = this.items.slice(this.startingRecord, this.endingRecord);
+
         //this.completedTaskList = this.items1.slice(this.startingRecord, this.endingRecord);
         this.startingRecord = this.startingRecord + 1;
     }
@@ -629,6 +643,15 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
     }
 
     displayRecordPerPage1(page1) {
+        if (this.page1 == 1) {
+            this.disablePrevious = true;
+            //console.log('disable previous: equal' + this.disablePrevious)
+        }
+        if (this.page1 === this.totalPage1) {
+            this.disableNext = true;
+            //console.log('disable next: equal' + this.disableNext)
+        }
+
         this.startingRecord1 = ((page1 - 1) * this.pageSize1);
         this.endingRecord1 = (this.pageSize1 * page1);
         this.endingRecord1 = (this.endingRecord1 > this.totalRecountCount1) ?
@@ -655,8 +678,19 @@ export default class ShowTaskListByUser extends NavigationMixin(LightningElement
 
     handleTaskBack(event) {
         this.isTaskTrue = false;
-        const customEvent = new CustomEvent("backcompetencyevent");
-        this.dispatchEvent(customEvent);
+        // const customEvent = new CustomEvent("backcompetencyevent");
+        // this.dispatchEvent(customEvent);
+        let backData = {};
+        backData.subName = this.selectedSubName;
+        backData.subcompId = this.subcompId;
+        sessionStorage.setItem('epicbackclicked', JSON.stringify(backData));
+
+        this[NavigationMixin.Navigate]({
+            type: 'comm__namedPage',
+            attributes: {
+                name: 'Home'
+            }
+        });
     }
 
     addEpic() {
